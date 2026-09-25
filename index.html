@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Credit card reward points calculator: Axis EDGE Miles, HDFC and Amex transfer partners ranked by rupee value.">
+<title>Points Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Archivo:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#F3F5F2; --surface:#FFFFFF; --sunk:#E9EDE8; --line:#D5DBD4;
+  --ink:#15202A; --ink-2:#4A5763; --ink-3:#77838D;
+  --accent:#1D6A86; --accent-soft:#DCEBF0;
+  --brass:#9C6F16; --brass-soft:#F4E8CF;
+  --good:#2E7D4F; --warn:#A5621A; --bad:#B23A3A;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Archivo", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0F1518; --surface:#172026; --sunk:#1D2830; --line:#2A3740;
+    --ink:#E4EAE8; --ink-2:#AAB6BC; --ink-3:#7D8A91;
+    --accent:#62B3D0; --accent-soft:#193441;
+    --brass:#DDB05A; --brass-soft:#3A2F17;
+    --good:#6CC08E; --warn:#E0A155; --bad:#E07A7A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0F1518; --surface:#172026; --sunk:#1D2830; --line:#2A3740;
+  --ink:#E4EAE8; --ink-2:#AAB6BC; --ink-3:#7D8A91;
+  --accent:#62B3D0; --accent-soft:#193441;
+  --brass:#DDB05A; --brass-soft:#3A2F17;
+  --good:#6CC08E; --warn:#E0A155; --bad:#E07A7A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-inline:16px;padding-block:28px 64px}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700}
+h2{font-size:21px;font-weight:700}
+h3{font-size:17px;font-weight:700}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.muted{color:var(--ink-2)}
+.small{font-size:13px}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);padding:8px 14px;font-weight:600}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+button.primary:hover{filter:brightness(1.08)}
+button:disabled{opacity:.55;cursor:default}
+button.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=number],input[type=text],textarea{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+textarea{min-height:90px;resize:vertical}
+
+/* header */
+.top{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:end}
+.worth{text-align:right}
+.worth .big{font-family:var(--mono);font-size:clamp(28px,4.5vw,42px);font-weight:500;line-height:1.1}
+@media (max-width:640px){.top{grid-template-columns:1fr}.worth{text-align:left}}
+
+/* sync panel */
+.sync{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.sync-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.status{font-size:13.5px;color:var(--ink-2);flex:1;min-width:200px}
+.status.err{color:var(--bad)}
+.found{display:flex;flex-direction:column;gap:8px}
+.found-item{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;padding:10px 12px;background:var(--sunk);border-radius:8px}
+.found-item .ev{grid-column:1/2;font-size:12.5px;color:var(--ink-3)}
+.found-item button{grid-row:1/3;grid-column:2}
+details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13.5px}
+details[open] summary{margin-bottom:10px}
+
+/* filter */
+.bar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border-radius:999px;padding:6px 14px;font-size:13.5px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* card wallets */
+.wallets{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+@media (max-width:420px){.wallets{grid-template-columns:1fr}}
+.wallet{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.wallet.zero{opacity:.72}
+.w-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.w-bank{font-size:12px;color:var(--ink-3);font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+.src{font-size:11.5px;padding:2px 8px;border-radius:999px;background:var(--sunk);color:var(--ink-2);white-space:nowrap}
+.src.mail{background:var(--accent-soft);color:var(--accent)}
+.src.ex{background:var(--brass-soft);color:var(--brass)}
+.bal{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.bal input{font-family:var(--mono);font-size:20px;padding:6px 10px}
+.bal .unit{font-size:13px;color:var(--ink-2)}
+.best{border-radius:10px;background:var(--brass-soft);padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.best .label{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.best .partner{font-family:var(--display);font-size:18px;font-weight:700}
+.best .line{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13.5px}
+.best .val{font-family:var(--mono);font-size:22px;font-weight:500}
+.vs{font-size:12.5px;color:var(--ink-2)}
+.tbl-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);text-align:left;font-weight:600;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.r,th.r{text-align:right}
+tr.top1 td{font-weight:600}
+tr.base td{color:var(--ink-2);font-style:italic}
+.grp{font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:4px;background:var(--sunk);color:var(--ink-2);margin-left:6px}
+.bar-cell{position:relative;min-width:90px}
+.bar-cell span.fill{position:absolute;left:8px;top:50%;height:6px;transform:translateY(-50%);border-radius:3px;background:var(--accent);opacity:.35}
+.bar-cell span.t{position:relative}
+.capnote{font-size:12px;color:var(--warn)}
+
+/* matrix */
+section.panel{display:flex;flex-direction:column;gap:12px}
+.matrix td.best-cell{background:var(--brass-soft);color:var(--brass);font-weight:700;border-radius:4px}
+.matrix td.na{color:var(--ink-3)}
+.matrix th.prog{white-space:normal;min-width:92px}
+
+/* values editor */
+.vals{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px 16px}
+.vals label{display:grid;grid-template-columns:1fr 84px;gap:8px;align-items:center;font-size:13.5px}
+.vals input{padding:5px 8px;font-family:var(--mono)}
+.notes{font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px;max-width:75ch}
+.notes a{color:var(--accent)}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Credit card points · transfer partners · ₹ value</div>
+      <h1>Points Desk</h1>
+      <p class="muted small" style="margin:6px 0 0;max-width:62ch">Balances from your Gmail, ranked against every transfer partner each card allows. Ratios checked 25 Sep 2026, including Axis's 23 Sep reshuffle.</p>
+    </div>
+    <div class="worth">
+      <div class="eyebrow">Best-case worth, all cards</div>
+      <div class="big" id="totalWorth">₹0</div>
+      <div class="small muted" id="totalNote"></div>
+    </div>
+  </header>
+
+  <section class="sync" aria-labelledby="syncH">
+    <div class="sync-row">
+      <h2 id="syncH" style="font-size:17px">Read balances from Gmail</h2>
+    </div>
+    <div class="sync-row">
+      <button class="primary" id="scanBtn" type="button">Scan Gmail</button>
+      <div class="status" id="scanStatus" role="status">Searches statement and reward emails from Axis, HDFC and Amex, then reads each balance out of them.</div>
+    </div>
+    <div class="found" id="found"></div>
+    <details>
+      <summary>Change the Gmail search, or paste an email or SMS instead</summary>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <label class="small muted" for="query">Gmail search</label>
+        <input type="text" id="query">
+        <label class="small muted" for="paste">Paste text from a statement, email or SMS</label>
+        <textarea id="paste" placeholder="e.g. Your EDGE Miles balance as on 20-Sep-2026 is 48,250"></textarea>
+        <div><button type="button" id="pasteBtn">Read balance from text</button></div>
+      </div>
+    </details>
+  </section>
+
+  <div class="bar">
+    <div class="chips" role="group" aria-label="Redeem for">
+      <button class="chip" type="button" data-f="all" aria-pressed="true">All partners</button>
+      <button class="chip" type="button" data-f="air" aria-pressed="false">Flights</button>
+      <button class="chip" type="button" data-f="hotel" aria-pressed="false">Hotels</button>
+    </div>
+    <div class="small muted" id="exampleNote"></div>
+  </div>
+
+  <div class="wallets" id="wallets"></div>
+
+  <section class="panel" aria-labelledby="mxH">
+    <h2 id="mxH">Which card to use for each partner</h2>
+    <p class="small muted" style="margin:0">Partner points you get per 1 card point. Highlighted cell is the card that gives the most for that partner.</p>
+    <div class="tbl-wrap"><table class="matrix" id="matrix"></table></div>
+  </section>
+
+  <section class="panel" aria-labelledby="valH">
+    <details>
+      <summary id="valH">Edit what a partner point is worth to you (₹)</summary>
+      <p class="small muted" style="margin:0 0 10px">These are typical values for good award redemptions, not cash value. Change any of them to match how you book. <button type="button" class="link" id="resetVals">Reset to defaults</button></p>
+      <div class="vals" id="vals"></div>
+    </details>
+  </section>
+
+  <section class="notes">
+    <h3>About the numbers</h3>
+    <div>Axis caps are per calendar year per customer: Atlas 30,000 Group A / 1,20,000 Group B; Magnus for Burgundy 2,00,000 / 8,00,000; Magnus 1,00,000 / 4,00,000. Values here assume the full cap is still open.</div>
+    <div>Axis changed ratios again on 23 Sep 2026 (BA, Cathay, Finnair, Qatar, Vietnam and Accor now convert at the lower rate). Check the ratio on the bank's portal before every transfer; transfers can't be reversed.</div>
+    <div>Sources: <a href="https://cardexpress.in/articles/axis-edge-transfer-partners-group-a-group-b" target="_blank" rel="noopener">Card Express (Axis, 23 Sep)</a> · <a href="https://livefromalounge.com/axis-bank-travel-edge-rewards-reshuffle-2026/" target="_blank" rel="noopener">Live From A Lounge</a> · <a href="https://magnify.club/guides/axis-bank-group-a-group-b-transfer-partners/" target="_blank" rel="noopener">Magnify (Axis groups, caps)</a> · <a href="https://pointsmath.com/hdfc-bank-points-transfer-partners/" target="_blank" rel="noopener">PointsMath (HDFC, 15 Aug)</a> · <a href="https://magnify.club/guides/amex-india-transfer-partners/" target="_blank" rel="noopener">Magnify (Amex, 18 Aug)</a></div>
+  </section>
+</div>
+
+<script>
+(function(){
+const LS = {
+  get(k, d){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+// ₹ per partner point: typical good-redemption value, editable by the viewer
+const PARTNERS = {
+  krisflyer:{n:"Singapore KrisFlyer",k:"air",v:1.3}, aeroplan:{n:"Air Canada Aeroplan",k:"air",v:1.2},
+  flyingblue:{n:"Air France-KLM Flying Blue",k:"air",v:1.0}, airindia:{n:"Air India Maharaja Club",k:"air",v:0.9},
+  united:{n:"United MileagePlus",k:"air",v:1.0}, turkish:{n:"Turkish Miles&Smiles",k:"air",v:1.3},
+  thai:{n:"Thai Royal Orchid Plus",k:"air",v:1.0}, jal:{n:"JAL Mileage Bank",k:"air",v:1.3},
+  etihad:{n:"Etihad Guest",k:"air",v:0.9}, ethiopian:{n:"Ethiopian ShebaMiles",k:"air",v:1.0},
+  qantas:{n:"Qantas Frequent Flyer",k:"air",v:0.9}, cathay:{n:"Cathay Asia Miles",k:"air",v:1.1},
+  ba:{n:"British Airways Avios",k:"air",v:1.1}, qatar:{n:"Qatar Privilege Club Avios",k:"air",v:1.1},
+  finnair:{n:"Finnair Plus Avios",k:"air",v:1.1}, vietnam:{n:"Vietnam LotusMiles",k:"air",v:0.8},
+  virgin:{n:"Virgin Atlantic Flying Club",k:"air",v:1.1}, lifemiles:{n:"Avianca LifeMiles",k:"air",v:1.1},
+  milesmore:{n:"Lufthansa Miles & More",k:"air",v:0.9}, airasia:{n:"AirAsia Rewards",k:"air",v:0.6},
+  spicejet:{n:"SpiceJet SpiceClub",k:"air",v:1.0}, indigo:{n:"IndiGo BluChip",k:"air",v:1.0},
+  accor:{n:"Accor ALL",k:"hotel",v:2.0}, hilton:{n:"Hilton Honors",k:"hotel",v:0.35},
+  ihg:{n:"IHG One Rewards",k:"hotel",v:0.45}, marriott:{n:"Marriott Bonvoy",k:"hotel",v:0.7},
+  wyndham:{n:"Wyndham Rewards",k:"hotel",v:0.8}, radisson:{n:"Radisson Rewards",k:"hotel",v:0.3},
+  itc:{n:"Club ITC",k:"hotel",v:0.8}, orchid:{n:"Orchid Rewards",k:"hotel",v:0.5},
+  postcard:{n:"The Postcard Sunshine Club",k:"hotel",v:0.8}
+};
+
+// Axis groups (Sept 2026)
+const AX_A = ["aeroplan","flyingblue","airindia","ba","cathay","etihad","ethiopian","finnair","jal","qantas","qatar","krisflyer","thai","turkish","united","vietnam","wyndham","accor"];
+const AX_B = ["airasia","hilton","ihg","indigo","milesmore","orchid","radisson","spicejet","postcard"];
+const AX_LOW = ["ba","cathay","finnair","qatar","vietnam","accor"]; // moved to the lower rate on 23 Sep 2026
+function axisTable(aRate, lowRate, bRate, overrides){
+  const t = {};
+  AX_A.forEach(p => t[p] = [AX_LOW.includes(p) ? lowRate : aRate, "A"]);
+  AX_B.forEach(p => t[p] = [bRate, "B"]);
+  Object.assign(t, overrides || {});
+  return t;
+}
+const PROGRAMS = [
+  {key:"axis_atlas", bank:"Axis Bank", card:"Atlas", unit:"EDGE Miles", ex:48250,
+   base:{v:1.0, label:"Travel EDGE booking"}, caps:{A:30000,B:120000},
+   r: axisTable(2, 0.5, 2, {indigo:[0.5,"B"], milesmore:[1,"B"], orchid:[1,"B"], radisson:[1,"B"]})},
+  {key:"axis_magnus_burgundy", bank:"Axis Bank", card:"Magnus for Burgundy", unit:"EDGE Reward points", ex:0,
+   base:{v:0.2, label:"Travel EDGE booking"}, caps:{A:200000,B:800000},
+   r: axisTable(0.8, 0.4, 0.8)},
+  {key:"axis_magnus", bank:"Axis Bank", card:"Magnus", unit:"EDGE Reward points", ex:0,
+   base:{v:0.2, label:"Travel EDGE booking"}, caps:{A:100000,B:400000},
+   r: axisTable(0.4, 0.2, 0.4)},
+  {key:"hdfc_infinia", bank:"HDFC Bank", card:"Infinia / Diners Club Black", unit:"Reward Points", ex:112400,
+   base:{v:1.0, label:"SmartBuy flights & hotels"},
+   r:{aeroplan:[.5],airasia:[1],airindia:[.5],lifemiles:[.5],ba:[.5],cathay:[.5],etihad:[.5],finnair:[1],flyingblue:[1],qatar:[.5],vietnam:[1],thai:[.5],turkish:[.5],united:[.5],spicejet:[1],krisflyer:[1],accor:[.5],itc:[.5],marriott:[.5],ihg:[1],radisson:[1],wyndham:[1]}},
+  {key:"hdfc_regalia_gold", bank:"HDFC Bank", card:"Regalia Gold", unit:"Reward Points", ex:0,
+   base:{v:0.5, label:"SmartBuy flights & hotels"},
+   r:{aeroplan:[.33],airasia:[.5],airindia:[.33],lifemiles:[.5],ba:[.33],cathay:[.33],etihad:[.33],finnair:[.5],flyingblue:[.5],qatar:[.33],vietnam:[.5],thai:[.33],turkish:[.5],united:[.33],spicejet:[.5],krisflyer:[.5],accor:[.5],itc:[.5],marriott:[.33],ihg:[.5],radisson:[.5],wyndham:[.5]}},
+  {key:"amex_mr", bank:"American Express", card:"Membership Rewards", unit:"MR points", ex:36000,
+   base:{v:0.5, label:"18K/24K Gold Collection vouchers"},
+   r:{hilton:[1.5],marriott:[1],virgin:[.8],cathay:[.5],ba:[.5],qatar:[.5],krisflyer:[.5]}}
+];
+
+const DEFAULT_QUERY = '(from:axisbank.com OR from:hdfcbank.net OR from:hdfcbank.com OR from:aexp.com OR from:americanexpress.com) ("EDGE Miles" OR "EDGE Reward" OR "reward points" OR "Membership Rewards" OR "points balance" OR statement) newer_than:120d';
+
+// state
+let balances = LS.get("pd_balances", null);   // {key:{n, src:"mail"|"manual", asOf, subject}}
+const usingExample = !balances;
+if (!balances){ balances = {}; PROGRAMS.forEach(p => balances[p.key] = {n:p.ex, src:"ex"}); }
+let values = LS.get("pd_values", {});
+let filter = LS.get("pd_filter", "all");
+let found = LS.get("pd_found", []);
+const $ = id => document.getElementById(id);
+$("query").value = LS.get("pd_query", DEFAULT_QUERY);
+$("query").addEventListener("change", e => LS.set("pd_query", e.target.value));
+
+const val = p => (values[p] != null ? values[p] : PARTNERS[p].v);
+const inr = n => "₹" + Math.round(n).toLocaleString("en-IN");
+const fmt = n => Math.round(n).toLocaleString("en-IN");
+const ratioTxt = r => r >= 1 ? ("1 : " + (+r.toFixed(2))) : ((+(1/r).toFixed(2)) + " : 1");
+
+function options(prog){
+  const bal = balances[prog.key]?.n || 0;
+  const rows = [];
+  for (const [p, [ratio, grp]] of Object.entries(prog.r)){
+    if (filter !== "all" && PARTNERS[p].k !== filter) continue;
+    let usable = bal, capped = false;
+    if (grp && prog.caps){ const cap = prog.caps[grp]; if (bal > cap){ usable = cap; capped = true; } }
+    if (p === "milesmore" && prog.caps && usable > 200000){ usable = 200000; capped = true; }
+    const per = ratio * val(p);
+    rows.push({p, ratio, grp, per, usable, capped, got: usable * ratio, worth: usable * per});
+  }
+  rows.sort((a, b) => b.per - a.per || b.worth - a.worth);
+  return rows;
+}
+
+function render(){
+  const w = $("wallets"); w.textContent = "";
+  let total = 0;
+  PROGRAMS.forEach(prog => {
+    const b = balances[prog.key] || {n:0, src:"manual"};
+    const rows = options(prog);
+    const base = {per: prog.base.v, worth: (b.n || 0) * prog.base.v};
+    const best = rows[0];
+    const bestWorth = Math.max(best ? best.worth : 0, base.worth);
+    total += bestWorth;
+
+    const el = document.createElement("article");
+    el.className = "wallet" + (b.n ? "" : " zero");
+    const srcCls = b.src === "mail" ? "src mail" : b.src === "ex" ? "src ex" : "src";
+    const srcTxt = b.src === "mail" ? ("From email" + (b.asOf ? " · " + b.asOf : "")) : b.src === "ex" ? "Example" : "Entered";
+    el.innerHTML = `
+      <div class="w-head"><div><div class="w-bank"></div><h3></h3></div><span class="${srcCls}"></span></div>
+      <div class="bal"><input type="number" min="0" step="1" inputmode="numeric" aria-label=""><span class="unit"></span></div>
+      <div class="best"></div>
+      <details><summary>All ${rows.length} options</summary><div class="tbl-wrap"><table>
+        <thead><tr><th>Partner</th><th class="r">Ratio</th><th class="r">You get</th><th class="r">₹ / card pt</th><th class="r">Worth</th></tr></thead>
+        <tbody></tbody></table></div></details>`;
+    el.querySelector(".w-bank").textContent = prog.bank;
+    el.querySelector("h3").textContent = prog.card;
+    el.querySelector(".w-head span").textContent = srcTxt;
+    if (b.subject) el.querySelector(".w-head span").title = b.subject;
+    const inp = el.querySelector("input");
+    inp.id = "bal_" + prog.key;
+    inp.value = b.n || "";
+    inp.placeholder = "0";
+    inp.setAttribute("aria-label", prog.card + " balance in " + prog.unit);
+    inp.addEventListener("change", () => {
+      if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key].src === "ex") balances[p.key] = {n:0, src:"manual"}; });
+      balances[prog.key] = {n: Math.max(0, Math.round(+inp.value || 0)), src:"manual"};
+      LS.set("pd_balances", balances); render();
+    });
+    el.querySelector(".unit").textContent = prog.unit;
+
+    const bestBox = el.querySelector(".best");
+    if (!b.n){
+      bestBox.innerHTML = `<div class="label">Best move</div><div class="small muted">Enter a balance to see the best transfer.</div>`;
+      if (best){ const s = document.createElement("div"); s.className = "vs"; s.textContent = `Top rate: ${PARTNERS[best.p].n} at ₹${best.per.toFixed(2)} per point`; bestBox.append(s); }
+    } else if (!best || base.per >= best.per){
+      bestBox.innerHTML = `<div class="label">Best move</div><div class="partner"></div><div class="line"><span class="val num"></span></div><div class="vs"></div>`;
+      bestBox.querySelector(".partner").textContent = "Redeem directly: " + prog.base.label;
+      bestBox.querySelector(".val").textContent = inr(base.worth);
+      bestBox.querySelector(".vs").textContent = `No partner beats ₹${prog.base.v} per point for this filter.`;
+    } else {
+      bestBox.innerHTML = `<div class="label">Best move</div><div class="partner"></div>
+        <div class="line"><span class="num gets"></span><span class="val num"></span></div><div class="vs"></div>`;
+      bestBox.querySelector(".partner").textContent = PARTNERS[best.p].n;
+      bestBox.querySelector(".gets").textContent = `${fmt(best.usable)} → ${fmt(best.got)} pts (${ratioTxt(best.ratio)})`;
+      bestBox.querySelector(".val").textContent = inr(best.worth);
+      const x = base.per ? (best.per / base.per) : 0;
+      let vs = `₹${best.per.toFixed(2)} per point · ${x.toFixed(1)}× the ${prog.base.label} value of ${inr(base.worth)}`;
+      bestBox.querySelector(".vs").textContent = vs;
+      if (best.capped){
+        const c = document.createElement("div"); c.className = "capnote";
+        c.textContent = `Group ${best.grp} cap is ${fmt(prog.caps[best.grp])} a year. Send the remaining ${fmt(b.n - best.usable)} to the next-best option below.`;
+        bestBox.append(c);
+      }
+    }
+
+    const tb = el.querySelector("tbody");
+    const maxPer = Math.max(base.per, ...rows.map(r => r.per), 0.01);
+    const all = rows.map(r => ({...r, base:false})).concat([{base:true, per:base.per, worth:base.worth}]).sort((a,b) => b.per - a.per);
+    all.forEach((r, i) => {
+      const tr = document.createElement("tr");
+      if (i === 0 && b.n) tr.className = "top1";
+      if (r.base){
+        tr.className += " base";
+        tr.innerHTML = `<td></td><td class="r">—</td><td class="r">—</td><td class="r bar-cell"></td><td class="r num"></td>`;
+        tr.children[0].textContent = "Direct: " + prog.base.label;
+      } else {
+        tr.innerHTML = `<td></td><td class="r num"></td><td class="r num"></td><td class="r bar-cell"></td><td class="r num"></td>`;
+        tr.children[0].textContent = PARTNERS[r.p].n;
+        if (r.grp){ const g = document.createElement("span"); g.className = "grp"; g.textContent = r.grp; tr.children[0].append(g); }
+        tr.children[1].textContent = ratioTxt(r.ratio);
+        tr.children[2].textContent = b.n ? fmt(r.got) + (r.capped ? "*" : "") : "—";
+      }
+      const bc = tr.children[3];
+      bc.innerHTML = `<span class="fill"></span><span class="t num"></span>`;
+      bc.querySelector(".fill").style.width = Math.round(70 * r.per / maxPer) + "px";
+      bc.querySelector(".t").textContent = "₹" + r.per.toFixed(2);
+      tr.children[4].textContent = b.n ? inr(r.worth) : "—";
+      tb.append(tr);
+    });
+    w.append(el);
+  });
+  $("totalWorth").textContent = inr(total);
+  $("totalNote").textContent = filter === "all" ? "using each card's best option" : ("best " + (filter === "air" ? "flight" : "hotel") + " option per card");
+  const anyEx = PROGRAMS.some(p => balances[p.key]?.src === "ex");
+  $("exampleNote").textContent = anyEx ? "Showing example balances. Scan Gmail or type your own." : "";
+  renderMatrix();
+}
+
+function renderMatrix(){
+  const t = $("matrix"); t.textContent = "";
+  const head = document.createElement("thead"); const hr = document.createElement("tr");
+  const th0 = document.createElement("th"); th0.textContent = "Partner"; hr.append(th0);
+  PROGRAMS.forEach(p => { const th = document.createElement("th"); th.className = "r prog"; th.textContent = p.card; hr.append(th); });
+  head.append(hr); t.append(head);
+  const tb = document.createElement("tbody");
+  Object.keys(PARTNERS).filter(p => filter === "all" || PARTNERS[p].k === filter)
+    .sort((a, b) => PARTNERS[a].n.localeCompare(PARTNERS[b].n)).forEach(p => {
+      const rates = PROGRAMS.map(pr => pr.r[p] ? pr.r[p][0] : null);
+      if (rates.every(x => x == null)) return;
+      const hi = Math.max(...rates.filter(x => x != null));
+      const tr = document.createElement("tr");
+      const td0 = document.createElement("td"); td0.textContent = PARTNERS[p].n; tr.append(td0);
+      rates.forEach(r => {
+        const td = document.createElement("td"); td.className = "r num";
+        if (r == null){ td.textContent = "—"; td.classList.add("na"); }
+        else { td.textContent = (+r.toFixed(2)).toString(); if (r === hi) td.classList.add("best-cell"); }
+        tr.append(td);
+      });
+      tb.append(tr);
+    });
+  t.append(tb);
+}
+
+function renderVals(){
+  const v = $("vals"); v.textContent = "";
+  Object.keys(PARTNERS).sort((a, b) => PARTNERS[a].n.localeCompare(PARTNERS[b].n)).forEach(p => {
+    const l = document.createElement("label");
+    const s = document.createElement("span"); s.textContent = PARTNERS[p].n;
+    const i = document.createElement("input"); i.type = "number"; i.step = "0.05"; i.min = "0"; i.id = "v_" + p; i.value = val(p);
+    i.addEventListener("change", () => { values[p] = Math.max(0, +i.value || 0); LS.set("pd_values", values); render(); });
+    l.append(s, i); v.append(l);
+  });
+}
+$("resetVals").addEventListener("click", () => { values = {}; LS.set("pd_values", values); renderVals(); render(); });
+
+document.querySelectorAll(".chip").forEach(c => {
+  c.setAttribute("aria-pressed", String(c.dataset.f === filter));
+  c.addEventListener("click", () => {
+    filter = c.dataset.f; LS.set("pd_filter", filter);
+    document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", String(x === c)));
+    render();
+  });
+});
+
+// ---------- Found balances ----------
+function renderFound(){
+  const f = $("found"); if (!f) return; f.textContent = "";
+  const known = found.filter(x => PROGRAMS.some(p => p.key === x.program));
+  known.forEach(x => {
+    const prog = PROGRAMS.find(p => p.key === x.program);
+    const d = document.createElement("div"); d.className = "found-item";
+    const a = document.createElement("div");
+    const strong = document.createElement("strong"); strong.textContent = prog.card + ": ";
+    const n = document.createElement("span"); n.className = "num"; n.textContent = fmt(x.balance) + " " + prog.unit;
+    a.append(strong, n);
+    if (x.asOf){ const s = document.createElement("span"); s.className = "muted small"; s.textContent = "  as of " + x.asOf; a.append(s); }
+    const ev = document.createElement("div"); ev.className = "ev"; ev.textContent = (x.subject ? x.subject + " — " : "") + (x.evidence || "");
+    const cur = balances[x.program];
+    const btn = document.createElement("button"); btn.type = "button";
+    const applied = cur && cur.src === "mail" && cur.n === x.balance;
+    btn.textContent = applied ? "Applied" : "Use this";
+    btn.disabled = applied;
+    btn.addEventListener("click", () => { applyFound(x); });
+    d.append(a, btn, ev); f.append(d);
+  });
+  if (known.length > 1){
+    const b = document.createElement("button"); b.type = "button"; b.textContent = "Use all " + known.length;
+    b.style.alignSelf = "flex-start";
+    b.addEventListener("click", () => known.forEach(x => applyFound(x, true)) || finishApply());
+    f.append(b);
+  }
+}
+function applyFound(x, batch){
+  if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key].src === "ex") balances[p.key] = {n:0, src:"manual"}; });
+  balances[x.program] = {n: Math.round(x.balance), src:"mail", asOf: x.asOf || "", subject: x.subject || ""};
+  if (!batch) finishApply();
+}
+function finishApply(){ LS.set("pd_balances", balances); render(); renderFound(); }
+
+// ---------- Gmail + Claude ----------
+const scanBtn = $("scanBtn"), status = $("scanStatus"), pasteBtn = $("pasteBtn");
+function setStatus(t, err){ status.textContent = t; status.classList.toggle("err", !!err); }
+const mcpP = window.claude && window.claude.use ? window.claude.use("mcp") : Promise.resolve(null);
+const sampleP = window.claude && window.claude.use ? window.claude.use("sample") : Promise.resolve(null);
+
+function mcpCopy(e){
+  switch (e && e.code){
+    case "needs_reauth": return "Gmail needs reconnecting. Open claude.ai Settings → Connectors, reconnect Gmail with read access, then scan again.";
+    case "server_not_connected": return "Gmail isn't connected. Add Gmail in claude.ai Settings → Connectors, then scan again.";
+    case "selection_required": return "You have more than one Gmail connector. Choose one when Claude asks, then scan again.";
+    case "not_in_manifest": return "Gmail access was turned off for this page. Allow it from the page's permissions to scan.";
+    case "blocked_by_policy": case "approval_required": return "Your organization's policy blocks Gmail access here. Enter balances by hand or paste an email below.";
+    case "server_unavailable": return "Gmail didn't respond. Try the scan again in a minute.";
+    case "tool_error": return "Gmail reported an error: " + (e.message || "unknown") + ". If it mentions permissions, reconnect Gmail in claude.ai Settings → Connectors.";
+    case "not_granted": case "capability_disabled": case "capability_removed": return "Gmail access isn't available in this view. Open the page in claude.ai, or paste an email below.";
+    default: return "Couldn't read Gmail (" + ((e && e.code) || "error") + "). Try again, or paste an email below.";
+  }
+}
+function sampleCopy(e){
+  switch (e && e.code){
+    case "not_granted": case "sampling_disabled": case "capability_disabled": case "not_declared": case "capability_removed":
+      return "Reading balances needs Claude, which isn't allowed in this view. Type balances into the cards instead.";
+    case "rate_limited": return "Claude is busy or your usage limit is reached. Try again later.";
+    case "prompt_too_large": return "Too much email text. Narrow the Gmail search and try again.";
+    case "invalid_json": case "empty_completion": return "Claude couldn't read a clear balance. Try again, or paste the balance line.";
+    case "session_expired": return "Sign in to claude.ai again, then retry.";
+    default: return "Reading the emails failed. Try again.";
+  }
+}
+
+function threadIds(p){
+  if (!p) return [];
+  if (typeof p === "string"){ const out = []; p.replace(/"id"\s*:\s*"([^"]+)"/g, (_, id) => out.push(id)); return out; }
+  if (Array.isArray(p.threads)) return p.threads.map(t => t && t.id).filter(Boolean);
+  let hit = null;
+  (function walk(o){
+    if (hit || !o || typeof o !== "object") return;
+    if (Array.isArray(o) && o.length && o.every(x => x && typeof x === "object" && typeof x.id === "string")){ hit = o.map(x => x.id); return; }
+    Object.values(o).forEach(walk);
+  })(p);
+  return hit || [];
+}
+const KEEP = /subject|snippet|plain|body|text|date|sender|from/i;
+function flatten(o, cap){
+  const out = [];
+  (function walk(v, k){
+    if (out.join("\n").length > cap) return;
+    if (typeof v === "string"){ if (!k || KEEP.test(k)) out.push((k ? k + ": " : "") + v.replace(/\s+/g, " ").trim()); return; }
+    if (v && typeof v === "object") for (const [kk, vv] of Object.entries(v)){ if (/html/i.test(kk)) continue; walk(vv, Array.isArray(v) ? k : kk); }
+  })(o, "");
+  return out.join("\n").slice(0, cap);
+}
+
+async function extract(texts){
+  const sample = await sampleP;
+  if (!sample) throw {code:"capability_disabled"};
+  const list = PROGRAMS.map(p => `- ${p.key}: ${p.bank} ${p.card} (${p.unit})`).join("\n");
+  const prompt = `You read Indian bank and credit-card emails and pull out the cardholder's CURRENT reward-point balances.
+Programs (key: description):
+${list}
+Rules: only a stated balance (closing, available, or total balance), never points earned on one transaction. If several emails give a balance for the same program, keep the most recent. An Axis email that says "EDGE Miles" is axis_atlas unless it names another card. If an Axis email gives EDGE Reward points without naming Magnus or Magnus for Burgundy, use program "other". Numbers use Indian commas; return plain numbers.
+Reply with only a JSON array like [{"program":"axis_atlas","balance":48250,"asOf":"2026-09-20","subject":"Your Axis Bank Atlas statement","evidence":"EDGE Miles balance: 48,250"}]. asOf is YYYY-MM-DD or "". evidence is a quote of at most 100 characters. Return [] if no balance is stated.
+
+EMAILS:
+${texts.join("\n\n-----\n\n")}`;
+  const res = await sample.json(prompt, {modelTier:"default"});
+  return (Array.isArray(res) ? res : []).filter(x => x && typeof x.program === "string" && isFinite(+x.balance) && +x.balance >= 0)
+    .map(x => ({program:x.program, balance:+x.balance, asOf:String(x.asOf || "").slice(0, 10), subject:String(x.subject || "").slice(0, 140), evidence:String(x.evidence || "").slice(0, 140)}));
+}
+
+scanBtn.addEventListener("click", async () => {
+  scanBtn.disabled = true;
+  try {
+    const mcp = await mcpP;
+    if (!mcp){ setStatus("Gmail access isn't available in this view. Open the page in claude.ai, or paste an email below.", true); return; }
+    setStatus("Searching Gmail…");
+    let search;
+    try { search = await mcp.callTool("Gmail", "search_threads", {query: $("query").value || DEFAULT_QUERY, pageSize: 15}); }
+    catch (e){ setStatus(mcpCopy(e), true); return; }
+    const ids = threadIds(search.payload).slice(0, 10);
+    if (!ids.length){ setStatus("No matching emails in the last 120 days. Edit the search below, or type balances into the cards.", true); return; }
+    const texts = [];
+    for (let i = 0; i < ids.length; i++){
+      setStatus(`Reading email ${i + 1} of ${ids.length}…`);
+      try {
+        const t = await mcp.callTool("Gmail", "get_thread", {threadId: ids[i], messageFormat: "PLAIN_TEXT"});
+        const s = flatten(t.payload, 3500);
+        if (s) texts.push(s);
+      } catch (e){
+        if (["needs_reauth","server_not_connected","not_in_manifest","blocked_by_policy","not_granted"].includes(e && e.code)){ setStatus(mcpCopy(e), true); return; }
+      }
+    }
+    if (!texts.length){ setStatus("Found emails but couldn't read them. Try again, or paste one below.", true); return; }
+    setStatus(`Reading balances from ${texts.length} emails with Claude… this can take up to a minute.`);
+    try { found = await extract(texts); }
+    catch (e){ setStatus(sampleCopy(e), true); return; }
+    LS.set("pd_found", found);
+    const n = found.filter(x => PROGRAMS.some(p => p.key === x.program)).length;
+    setStatus(n ? `Found ${n} balance${n > 1 ? "s" : ""} in ${texts.length} emails. Check and apply below.` : `Read ${texts.length} emails but none stated a balance. Many banks only show points inside the PDF statement; paste the points line below or type it into the card.`, !n);
+    renderFound();
+  } finally { scanBtn.disabled = false; }
+});
+
+pasteBtn.addEventListener("click", async () => {
+  const txt = $("paste").value.trim();
+  if (!txt){ setStatus("Paste some text first.", true); return; }
+  pasteBtn.disabled = true; setStatus("Reading the pasted text…");
+  try {
+    const got = await extract([txt.slice(0, 20000)]);
+    got.forEach(g => { found = found.filter(f => f.program !== g.program); found.unshift(g); });
+    LS.set("pd_found", found);
+    setStatus(got.length ? "Found " + got.length + " balance" + (got.length > 1 ? "s" : "") + ". Apply below." : "No balance found in that text.", !got.length);
+    renderFound();
+  } catch (e){ setStatus(sampleCopy(e), true); }
+  finally { pasteBtn.disabled = false; }
+});
+
+if (!(window.claude && window.claude.use)){
+  // Hosted outside Claude (e.g. GitHub Pages): no Gmail connector, no Claude
+  const sync = document.querySelector(".sync");
+  sync.innerHTML = `<h2 style="font-size:17px">Your balances</h2>
+    <div class="status">Type each card's points balance into its card below. Reading balances from Gmail works only when this page is opened inside Claude.</div>`;
+}
+renderVals(); render(); renderFound();
+})();
+</script>
+</body>
+</html>
