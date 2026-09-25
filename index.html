@@ -652,7 +652,9 @@ function renderTrips(){
     else { st.className = "pill no"; st.textContent = `Need ${fmt(x.short)} more`; }
     d.querySelector(".to").textContent = x.s.to;
     d.querySelector(".meta").textContent = (x.s.from ? "From " + x.s.from + " · " : "") + PARTNERS[x.p].n;
-    d.querySelector(".cost").textContent = `${fmt(x.s.m)} ${x.s.cab === "Hotel" ? "pts / night" : "miles one-way"} = ${fmt(cardPts)} ${best.prog.card} pts`;
+    const funded = x.pl.srcs.filter(s => s.pts > 0).map(s => s.prog.card);
+    d.querySelector(".cost").textContent = `${fmt(x.s.m)} ${x.s.cab === "Hotel" ? "pts / night" : "miles one-way"}` +
+      (best.usable >= cardPts ? ` = ${fmt(cardPts)} ${best.prog.card} pts` : funded.length ? ` · from ${funded.join(" + ")}` : ` · best rate: ${best.prog.card} ${ratioTxt(best.ratio)}`);
     d.addEventListener("click", () => openGuide(x.p));
     box.append(d);
   });
