@@ -774,6 +774,9 @@ const dlg = $("guide");
 $("gClose").addEventListener("click", () => dlg.close());
 dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 function el(tag, cls, txt){ const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+// Cash prices the viewer found, keyed "partner|spot index". One seeded example: a Google Flights check on 25 Sep 2026.
+const cashPrices = LS.get("pd_cash", {});
+const DEFAULT_CASH = {"jal|0": {cash: 70000, tax: 0}};
 function openGuide(p){
   const g = GUIDES[p], P = PARTNERS[p], pl = pool(p);
   $("gKind").textContent = P.k === "air" ? "Airline programme" : "Hotel programme";
@@ -809,12 +812,20 @@ function openGuide(p){
 
   if (g){
     const sp = el("div"); sp.append(el("h4", "", P.k === "air" ? "Where it can take you" : "Where you can stay"));
+    sp.append(el("p", "small muted", "Enter the cash price you find for the same trip, and the taxes the airline asks for on the award booking. The page works out what each point is really worth on that trip."));
     const st = el("table");
-    st.innerHTML = `<thead><tr><th>${P.k === "air" ? "To" : "Hotel"}</th>${P.k === "air" ? "<th>From</th>" : ""}<th>Cabin</th><th class="r">${P.k === "air" ? "Miles one-way" : "Points / night"}</th><th class="r">Your card pts</th><th>You can book</th></tr></thead>`;
+    st.innerHTML = `<thead><tr><th>${P.k === "air" ? "To" : "Hotel"}</th>${P.k === "air" ? "<th>From</th>" : ""}<th>Cabin</th><th class="r">${P.k === "air" ? "Miles one-way" : "Points / night"}</th><th class="r">Your card pts</th><th>You can book</th><th class="r">Cash price ₹</th><th class="r">Award taxes ₹</th><th class="r">₹ per point</th></tr></thead>`;
     const sb = el("tbody");
-    g.spots.forEach(s => {
+    g.spots.forEach((s, i) => {
       const tr = el("tr");
       const to = el("td"); to.append(el("div", "", s.to)); if (s.note) to.append(el("div", "small muted", s.note)); to.style.whiteSpace = "normal"; to.style.minWidth = "180px";
+      const q = P.k === "air"
+        ? `one way ${/business|suites/i.test(s.cab) ? "business class " : /premium/i.test(s.cab) ? "premium economy " : ""}flights from ${(s.from || "").split(/[\/,]| via /)[0].trim()} to ${s.to.split(/[\/,(]| or |, then /)[0].replace(/^Anywhere in /, "").trim()}`
+        : s.to.split(/[\/,]/)[0].trim();
+      const a = el("a", "small", P.k === "air" ? "Check fare on Google Flights ↗" : "Check rate on Google Hotels ↗");
+      a.href = (P.k === "air" ? "https://www.google.com/travel/flights?q=" : "https://www.google.com/travel/hotels?q=") + encodeURIComponent(q);
+      a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent)";
+      to.append(a);
       tr.append(to);
       if (P.k === "air") tr.append(el("td", "", s.from || ""));
       tr.append(el("td", "", s.cab === "Hotel" ? "Room" : s.cab));
@@ -824,7 +835,32 @@ function openGuide(p){
       const c = el("td");
       if (s.m){ const n = Math.floor(pl.total / s.m); c.append(el("span", "pill " + (n ? "ok" : "no"), n ? n + "×" : "Not yet")); }
       else c.textContent = "Check site";
-      tr.append(c); sb.append(tr);
+      tr.append(c);
+      // Cash comparison
+      const key = p + "|" + i;
+      const saved = cashPrices[key] || DEFAULT_CASH[key] || {};
+      const mk = (id, v) => { const td = el("td", "r"); const inp = el("input"); inp.type = "number"; inp.min = "0"; inp.step = "500"; inp.id = id; inp.value = v ?? ""; inp.placeholder = "—"; inp.style.width = "96px"; inp.style.fontFamily = "var(--mono)"; inp.style.padding = "4px 6px"; td.append(inp); return [td, inp]; };
+      const [cTd, cIn] = mk("cash_" + p + "_" + i, saved.cash);
+      const [xTd, xIn] = mk("tax_" + p + "_" + i, saved.tax);
+      const out = el("td", "r num");
+      const calc = () => {
+        const cash = +cIn.value || 0, tax = +xIn.value || 0;
+        out.textContent = "";
+        if (!s.m || !cash){ out.textContent = s.m ? "—" : "Varies"; return; }
+        const per = Math.max(0, cash - tax) / s.m;
+        out.append(el("div", "", "₹" + per.toFixed(2)));
+        const vs = el("div", "small " + (per >= val(p) ? "" : "muted"), per >= val(p) ? "above your ₹" + val(p) : "below your ₹" + val(p));
+        if (per >= val(p)) vs.style.color = "var(--good)";
+        out.append(vs);
+        const use = el("button", "link small", "Use as my value"); use.type = "button";
+        use.addEventListener("click", () => { values[p] = +per.toFixed(2); LS.set("pd_values", values); renderVals(); render(); openGuide(p); });
+        out.append(use);
+      };
+      const save = () => { cashPrices[key] = {cash: +cIn.value || 0, tax: +xIn.value || 0}; LS.set("pd_cash", cashPrices); calc(); };
+      cIn.addEventListener("input", save); xIn.addEventListener("input", save);
+      calc();
+      tr.append(cTd, xTd, out);
+      sb.append(tr);
     });
     st.append(sb); const sw = el("div", "tbl-wrap"); sw.append(st); sp.append(sw);
     body.append(sp);
