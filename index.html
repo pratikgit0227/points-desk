@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Credit card reward points calculator: Axis EDGE Miles, HDFC and Amex transfer partners ranked by rupee value, with where-to-fly guides.">
+<meta name="description" content="Credit card reward points calculator: Axis EDGE Miles, HDFC, Amex and HSBC transfer partners ranked by rupee value, with where-to-fly guides and a card picker.">
 <title>Points Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -132,6 +132,16 @@ button.pl{border:0;background:none;padding:0;font-weight:inherit;color:inherit;t
 button.pl:hover{color:var(--accent);text-decoration-color:var(--accent)}
 .how{align-self:flex-start;margin-top:4px;font-size:13px;padding:5px 10px;background:var(--surface);border-color:var(--brass);color:var(--brass)}
 
+/* card picker */
+.pick-in{display:flex;flex-wrap:wrap;gap:12px}
+.pick-in label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2);min-width:200px;flex:1;max-width:280px}
+.pick-in input{font-family:var(--mono)}
+#pickT td.why{white-space:normal;min-width:240px;font-size:12.5px;color:var(--ink-2)}
+#pickT tr.win td{background:var(--brass-soft)}
+#pickT .neg{color:var(--bad)}
+.w-status{font-size:12px;color:var(--ink-3);margin-top:2px}
+.w-status.closed{color:var(--warn);font-weight:600}
+
 /* trips */
 .trips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
 .trip{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;font-weight:400;width:100%;display:flex;flex-direction:column;gap:6px}
@@ -203,6 +213,17 @@ dialog#guide::backdrop{background:rgba(10,16,20,.5)}
 
   <div class="wallets" id="wallets"></div>
 
+  <section class="panel" aria-labelledby="pickH">
+    <h2 id="pickH">Choosing a card if you travel once a year</h2>
+    <p class="small muted" style="margin:0">What each open card earns you in a year after its fee, used for your best flight or your best hotel. Change the spend to match yours.</p>
+    <div class="pick-in">
+      <label for="spendIn">Yearly card spend (₹)<input type="number" id="spendIn" min="0" step="10000"></label>
+      <label for="travelIn">of which travel bookings (₹)<input type="number" id="travelIn" min="0" step="5000"></label>
+    </div>
+    <div class="tbl-wrap"><table id="pickT"></table></div>
+    <p class="small muted" id="pickNote" style="margin:0"></p>
+  </section>
+
   <section class="panel" aria-labelledby="tripH">
     <h2 id="tripH">Where your points can take you</h2>
     <p class="small muted" style="margin:0">One-way award flights from India and hotel nights, priced in partner points. "You can book" counts all your cards that transfer to that partner. Tap a trip for the full how-to.</p>
@@ -228,6 +249,7 @@ dialog#guide::backdrop{background:rgba(10,16,20,.5)}
     <div>Axis caps are per calendar year per customer: Atlas 30,000 Group A / 1,20,000 Group B; Magnus for Burgundy 2,00,000 / 8,00,000; Magnus 1,00,000 / 4,00,000. Values here assume the full cap is still open.</div>
     <div>Axis changed ratios again on 23 Sep 2026 (BA, Cathay, Finnair, Qatar, Vietnam and Accor now convert at the lower rate). Check the ratio on the bank's portal before every transfer; transfers can't be reversed.</div>
     <div>Award prices are the lowest (saver / off-peak) one-way prices seen in 2026. Seats at that price are limited, taxes and fuel surcharges are extra, and airlines change charts without notice. Find the seat on the airline's site first, then transfer.</div>
+    <div>Card facts (fees, earn rates, milestones) checked 25 Sep 2026: <a href="https://magnify.club/guides/hsbc-travelone-credit-card-review/" target="_blank" rel="noopener">HSBC TravelOne</a> · <a href="https://cardadvisor.in/cards/axis-horizon" target="_blank" rel="noopener">Axis Horizon</a> · <a href="https://magnify.club/guides/amex-platinum-travel-devaluation-september-2026/" target="_blank" rel="noopener">Amex Platinum Travel (Sept 2026)</a> · <a href="https://livefromalounge.com/scapia-credit-card-review-2025/" target="_blank" rel="noopener">Scapia</a> · <a href="https://cardtrail.in/news/axis-atlas-discontinued-2026/" target="_blank" rel="noopener">Atlas closed to new applicants</a>. HSBC and Horizon direct-redemption values are estimates.</div>
     <div>Sources: <a href="https://cardexpress.in/articles/axis-edge-transfer-partners-group-a-group-b" target="_blank" rel="noopener">Card Express (Axis, 23 Sep)</a> · <a href="https://livefromalounge.com/axis-bank-travel-edge-rewards-reshuffle-2026/" target="_blank" rel="noopener">Live From A Lounge</a> · <a href="https://magnify.club/guides/axis-bank-group-a-group-b-transfer-partners/" target="_blank" rel="noopener">Magnify (Axis groups, caps)</a> · <a href="https://pointsmath.com/hdfc-bank-points-transfer-partners/" target="_blank" rel="noopener">PointsMath (HDFC, 15 Aug)</a> · <a href="https://magnify.club/guides/amex-india-transfer-partners/" target="_blank" rel="noopener">Magnify (Amex, 18 Aug)</a></div>
   </section>
 </div>
@@ -296,8 +318,36 @@ const PROGRAMS = [
    r:{aeroplan:[.33],airasia:[.5],airindia:[.33],lifemiles:[.5],ba:[.33],cathay:[.33],etihad:[.33],finnair:[.5],flyingblue:[.5],qatar:[.33],vietnam:[.5],thai:[.33],turkish:[.5],united:[.33],spicejet:[.5],krisflyer:[.5],accor:[.5],itc:[.5],marriott:[.33],ihg:[.5],radisson:[.5],wyndham:[.5]}},
   {key:"amex_mr", bank:"American Express", card:"Membership Rewards", unit:"MR points", ex:36000,
    base:{v:0.5, label:"18K/24K Gold Collection vouchers"},
-   r:{hilton:[1.5],marriott:[1],virgin:[.8],cathay:[.5],ba:[.5],qatar:[.5],krisflyer:[.5]}}
+   r:{hilton:[1.5],marriott:[1],virgin:[.8],cathay:[.5],ba:[.5],qatar:[.5],krisflyer:[.5]}},
+  {key:"hsbc_travelone", bank:"HSBC", card:"TravelOne", unit:"Reward Points", ex:0,
+   base:{v:0.25, label:"Vouchers / statement credit (est.)"},
+   r:{airindia:[1],flyingblue:[1],airasia:[3],ba:[1],etihad:[1],jal:[1],qatar:[1],qantas:[1],krisflyer:[1],thai:[1],turkish:[.5],united:[.5],vietnam:[1],accor:[1],ihg:[1],marriott:[1],wyndham:[1]}},
+  {key:"axis_horizon", bank:"Axis Bank", card:"Horizon", unit:"EDGE Miles", ex:0,
+   base:{v:1.0, label:"Travel EDGE booking (est.)"}, caps:{A:100000,B:400000},
+   r: axisTable(1, 0.5, 1, {indigo:[0.5,"B"], milesmore:[0.5,"B"], orchid:[0.5,"B"], radisson:[0.5,"B"]})},
+  {key:"scapia", bank:"Federal Bank", card:"Scapia", unit:"Scapia coins", ex:0,
+   base:{v:0.2, label:"Travel bookings in the Scapia app"}, r:{}}
 ];
+
+// Card facts for the "pick a card" calculator. earn = points per ₹100 (travel / everything else).
+// fee incl. 18% GST; waive = yearly spend that waives the fee; bonus = milestone points.
+const CARD_INFO = {
+  axis_atlas:{status:"Closed to new applicants (2026)", fee:5900, earn:{travel:5, other:2}},
+  axis_magnus_burgundy:{status:"Needs an Axis Burgundy relationship", fee:35400},
+  axis_magnus:{status:"Open", fee:14750},
+  hdfc_infinia:{status:"Mostly by invitation", fee:14750, waive:1000000},
+  hdfc_regalia_gold:{status:"Open", fee:2950, waive:400000, earn:{travel:2.67, other:2.67}, pick:true,
+    why:"Lowest fee of the transfer cards, waived at ₹4L a year. Transfers are 2:1 or 3:1, so points are best used on SmartBuy."},
+  amex_mr:{status:"Open (Platinum Travel)", fee:5900, earn:{travel:2, other:2}, bonus:[{at:400000, pts:10000}], pick:true,
+    label:"Amex Platinum Travel",
+    why:"10,000 bonus points at ₹4L and a ₹20,000 Taj voucher at ₹7L (Sept 2026 milestones). Marriott 1:1 and Hilton 1:1.5; airlines are 2:1."},
+  hsbc_travelone:{status:"Open", fee:5899, waive:800000, earn:{travel:4, other:2}, pick:true,
+    why:"1:1 to KrisFlyer, JAL, Air India, Qatar/BA Avios, Accor, Marriott and IHG, with instant transfers. The widest 1:1 list of any open card."},
+  axis_horizon:{status:"Open", fee:3540, earn:{travel:5, other:2}, bonus:[{at:0, pts:1500, label:"renewal EDGE Miles from year 2"}], pick:true,
+    why:"The open replacement for Atlas: EDGE Miles 1:1 to KrisFlyer, JAL, Aeroplan, Turkish, Air India and Hilton. 5,000 EDGE Miles welcome bonus in year 1."},
+  scapia:{status:"Open, lifetime free", fee:0, earn:{travel:20, other:10}, pick:true,
+    why:"No fee and 0% forex markup. No transfers: coins pay for bookings in the Scapia app (5 coins = ₹1), so there's nothing to learn."}
+};
 
 // How-to guides. spots: one-way award prices from India (saver / off-peak, 2026), or per-night hotel prices.
 // m = partner points needed; omit m where the price is dynamic.
@@ -522,6 +572,13 @@ function render(){
         <tbody></tbody></table></div></details>`;
     el.querySelector(".w-bank").textContent = prog.bank;
     el.querySelector("h3").textContent = prog.card;
+    const ci = CARD_INFO[prog.key];
+    if (ci){
+      const s = document.createElement("div");
+      s.className = "w-status" + (/closed/i.test(ci.status) ? " closed" : "");
+      s.textContent = ci.status + (ci.fee ? " · fee " + inr(ci.fee) + "/yr" : "");
+      el.querySelector("h3").after(s);
+    }
     el.querySelector(".w-head span").textContent = srcTxt;
     if (b.subject) el.querySelector(".w-head span").title = b.subject;
     const inp = el.querySelector("input");
@@ -530,7 +587,7 @@ function render(){
     inp.placeholder = "0";
     inp.setAttribute("aria-label", prog.card + " balance in " + prog.unit);
     inp.addEventListener("change", () => {
-      if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key].src === "ex") balances[p.key] = {n:0, src:"manual"}; });
+      if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key]?.src === "ex") balances[p.key] = {n:0, src:"manual"}; });
       balances[prog.key] = {n: Math.max(0, Math.round(+inp.value || 0)), src:"manual"};
       LS.set("pd_balances", balances); render();
     });
@@ -597,6 +654,60 @@ function render(){
   $("exampleNote").textContent = anyEx ? (window.claude && window.claude.use ? "Showing example balances. Scan Gmail or type your own." : "Showing example balances. Type your own into each card.") : "";
   renderMatrix();
   renderTrips();
+  renderPick();
+}
+
+// ---------- Card picker ----------
+const pickState = LS.get("pd_pick", {spend:400000, travel:60000});
+$("spendIn").value = pickState.spend; $("travelIn").value = pickState.travel;
+["spendIn","travelIn"].forEach(id => $(id).addEventListener("input", () => {
+  pickState.spend = Math.max(0, +$("spendIn").value || 0);
+  pickState.travel = Math.min(pickState.spend, Math.max(0, +$("travelIn").value || 0));
+  LS.set("pd_pick", pickState); renderPick();
+}));
+function renderPick(){
+  const spend = pickState.spend, travel = Math.min(pickState.travel, spend);
+  const rows = PROGRAMS.filter(p => CARD_INFO[p.key]?.pick).map(prog => {
+    const ci = CARD_INFO[prog.key];
+    let pts = travel / 100 * ci.earn.travel + (spend - travel) / 100 * ci.earn.other;
+    (ci.bonus || []).forEach(b => { if (spend >= b.at) pts += b.pts; });
+    const fee = ci.waive && spend >= ci.waive ? 0 : ci.fee;
+    let air = {per: prog.base.v, name: prog.base.label}, hotel = {per: prog.base.v, name: prog.base.label};
+    for (const [p, [ratio]] of Object.entries(prog.r)){
+      const per = ratio * val(p);
+      if (PARTNERS[p].k === "air" && per > air.per) air = {per, name: PARTNERS[p].n, p, ratio};
+      if (PARTNERS[p].k === "hotel" && per > hotel.per) hotel = {per, name: PARTNERS[p].n, p, ratio};
+    }
+    // Biggest award in the guides these points cover
+    let trip = null;
+    for (const [p, [ratio]] of Object.entries(prog.r)){
+      (GUIDES[p]?.spots || []).forEach(s => { if (s.m && s.m <= pts * ratio && (!trip || s.m * val(p) > trip.w)) trip = {s, p, w: s.m * val(p)}; });
+    }
+    const fv = pts * air.per, hv = pts * hotel.per;
+    return {prog, ci, pts, fee, air, hotel, fv, hv, net: Math.max(fv, hv) - fee, trip};
+  }).sort((a, b) => b.net - a.net);
+  const t = $("pickT"); t.textContent = "";
+  t.innerHTML = `<thead><tr><th>Card</th><th class="r">Points a year</th><th class="r">As flights</th><th class="r">As hotels</th><th class="r">Fee</th><th class="r">You keep</th><th>Enough for</th><th>Why this card</th></tr></thead>`;
+  const tb = document.createElement("tbody");
+  rows.forEach((r, i) => {
+    const tr = document.createElement("tr"); if (i === 0) tr.className = "win";
+    const c0 = el("td"); c0.append(el("div", "", r.ci.label || (r.prog.bank.replace(" Bank", "") + " " + r.prog.card)));
+    c0.append(el("div", "small muted", r.ci.status)); tr.append(c0);
+    tr.append(el("td", "r num", fmt(r.pts)));
+    const f = el("td", "r num", inr(r.fv)); f.title = "via " + r.air.name; tr.append(f);
+    const h = el("td", "r num", inr(r.hv)); h.title = "via " + r.hotel.name; tr.append(h);
+    tr.append(el("td", "r num", r.fee ? inr(r.fee) : (r.ci.fee ? "Waived" : "Free")));
+    tr.append(el("td", "r num" + (r.net < 0 ? " neg" : ""), inr(r.net)));
+    const tc = el("td"); tc.style.whiteSpace = "normal"; tc.style.minWidth = "160px";
+    if (r.trip){ const b = el("button", "pl", r.trip.s.to + " · " + r.trip.s.cab); b.type = "button"; b.addEventListener("click", () => openGuide(r.trip.p)); tc.append(b); }
+    else tc.append(el("span", "muted", r.prog.key === "scapia" ? inr(r.pts * r.prog.base.v) + " off bookings" : "Build up over 2 years"));
+    tr.append(tc);
+    tr.append(el("td", "why", r.ci.why + " Best flight use: " + r.air.name + "; best hotel use: " + r.hotel.name + "."));
+    tb.append(tr);
+  });
+  t.append(tb);
+  const w = rows[0];
+  $("pickNote").textContent = w ? `At ${inr(spend)} a year, ${w.ci.label || w.prog.card} leaves you the most: ${inr(w.net)} after its fee. Year-1 welcome bonuses aren't counted. Axis Atlas is closed to new applicants, so it isn't in this list.` : "";
 }
 
 // ---------- Partner guides ----------
@@ -805,7 +916,7 @@ function renderFound(){
   }
 }
 function applyFound(x, batch){
-  if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key].src === "ex") balances[p.key] = {n:0, src:"manual"}; });
+  if (!LS.get("pd_balances", null)) PROGRAMS.forEach(p => { if (balances[p.key]?.src === "ex") balances[p.key] = {n:0, src:"manual"}; });
   balances[x.program] = {n: Math.round(x.balance), src:"mail", asOf: x.asOf || "", subject: x.subject || ""};
   if (!batch) finishApply();
 }
