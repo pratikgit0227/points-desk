@@ -774,6 +774,61 @@ const dlg = $("guide");
 $("gClose").addEventListener("click", () => dlg.close());
 dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
 function el(tag, cls, txt){ const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+// Airport codes per guide spot ("partner|index" → [origin, destination]) for fare-site links
+const CODES = {
+  "jal|0":["DEL","NRT"], "jal|1":["DEL","NRT"],
+  "krisflyer|0":["DEL","SIN"], "krisflyer|1":["BOM","SIN"], "krisflyer|2":["DEL","NRT"], "krisflyer|3":["DEL","SYD"], "krisflyer|4":["DEL","JFK"],
+  "aeroplan|0":["DEL","FRA"], "aeroplan|1":["DEL","FRA"], "aeroplan|2":["DEL","LHR"], "aeroplan|3":["DEL","JFK"], "aeroplan|4":["DEL","BKK"], "aeroplan|5":["DEL","SIN"], "aeroplan|6":["DEL","BOM"],
+  "turkish|0":["CDG","IST"],
+  "flyingblue|0":["BOM","CDG"], "flyingblue|1":["DEL","CDG"],
+  "airindia|0":["DEL","DXB"], "airindia|1":["BOM","MRU"], "airindia|2":["DEL","LHR"], "airindia|3":["DEL","SFO"], "airindia|4":["DEL","YYZ"],
+  "qatar|0":["DEL","DOH"], "qatar|1":["DOH","LHR"], "qatar|2":["DOH","JFK"],
+  "ba|0":["DEL","LHR"], "ba|1":["DEL","LHR"], "finnair|0":["DEL","HEL"],
+  "etihad|0":["AUH","LHR"], "etihad|1":["DEL","AUH"], "cathay|0":["DEL","HKG"], "cathay|1":["HKG","JFK"],
+  "thai|0":["DEL","BKK"], "ethiopian|0":["DEL","ADD"], "qantas|0":["BLR","SYD"], "vietnam|0":["DEL","HAN"],
+  "virgin|0":["DEL","LHR"], "lifemiles|0":["DEL","FRA"], "milesmore|0":["DEL","FRA"], "airasia|0":["CCU","KUL"],
+  "spicejet|0":["DEL","BOM"], "indigo|0":["DEL","BOM"]
+};
+// Each programme's own site, for award searches
+const SITES = {
+  jal:"https://www.jal.co.jp/jp/en/jalmile/", krisflyer:"https://www.singaporeair.com/", aeroplan:"https://www.aircanada.com/aeroplan",
+  turkish:"https://www.turkishairlines.com/", flyingblue:"https://www.flyingblue.com/", airindia:"https://www.airindia.com/",
+  qatar:"https://www.qatarairways.com/", ba:"https://www.britishairways.com/", finnair:"https://www.finnair.com/", united:"https://www.united.com/",
+  etihad:"https://www.etihad.com/", cathay:"https://www.cathaypacific.com/", thai:"https://www.thaiairways.com/", ethiopian:"https://www.ethiopianairlines.com/",
+  qantas:"https://www.qantas.com/", vietnam:"https://www.vietnamairlines.com/", virgin:"https://www.virginatlantic.com/", lifemiles:"https://www.lifemiles.com/",
+  milesmore:"https://www.miles-and-more.com/", airasia:"https://www.airasia.com/", spicejet:"https://www.spicejet.com/", indigo:"https://www.goindigo.in/",
+  accor:"https://all.accor.com/", hilton:"https://www.hilton.com/", ihg:"https://www.ihg.com/", marriott:"https://www.marriott.com/",
+  wyndham:"https://www.wyndhamhotels.com/", itc:"https://www.itchotels.com/", radisson:"https://www.radissonhotels.com/"
+};
+const SEATS_AERO = ["jal","krisflyer","aeroplan","turkish","flyingblue","qatar","ba","finnair","united","etihad","cathay","qantas","virgin","lifemiles","airindia"];
+function defaultDate(){ const d = new Date(Date.now() + 60 * 864e5); return d.toISOString().slice(0, 10); }
+let tripDate = LS.get("pd_date", "") || defaultDate();
+function fareLinks(p, i, s, air){
+  const wrap = el("div", "small"); wrap.style.display = "flex"; wrap.style.flexWrap = "wrap"; wrap.style.gap = "4px 10px"; wrap.style.marginTop = "4px";
+  const add = (label, href) => { const a = el("a", "", label + " ↗"); a.href = href; a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent)"; wrap.append(a); };
+  const [y, m, d] = tripDate.split("-");
+  if (air){
+    const c = CODES[p + "|" + i];
+    const cab = /suites|first/i.test(s.cab) ? "first" : /business/i.test(s.cab) ? "business" : /premium/i.test(s.cab) ? "premiumeconomy" : "economy";
+    const cabTxt = {first:"first class ", business:"business class ", premiumeconomy:"premium economy ", economy:""}[cab];
+    const from = c ? c[0] : (s.from || "").split(/[\/,]| via /)[0].trim();
+    const to = c ? c[1] : s.to.split(/[\/,(]| or |, then /)[0].replace(/^Anywhere in /, "").trim();
+    add("Google Flights", "https://www.google.com/travel/flights?q=" + encodeURIComponent(`one way ${cabTxt}flights from ${from} to ${to} on ${tripDate}`));
+    if (c){
+      add("Skyscanner", `https://www.skyscanner.co.in/transport/flights/${c[0].toLowerCase()}/${c[1].toLowerCase()}/${y.slice(2)}${m}${d}/?adultsv2=1&cabinclass=${cab}&rtn=0`);
+      const mmtCab = {first:"F", business:"B", premiumeconomy:"PE", economy:"E"}[cab];
+      add("MakeMyTrip", `https://www.makemytrip.com/flight/search?itinerary=${c[0]}-${c[1]}-${d}/${m}/${y}&tripType=O&paxType=A-1_C-0_I-0&intl=true&cabinClass=${mmtCab}`);
+      if (SEATS_AERO.includes(p)) add("Award seats: seats.aero", `https://seats.aero/search?origins=${c[0]}&destinations=${c[1]}&date=${tripDate}`);
+    }
+  } else {
+    const name = s.to.split(/[\/,]/)[0].trim();
+    const out = new Date(new Date(tripDate).getTime() + 864e5).toISOString().slice(0, 10);
+    add("Google Hotels", "https://www.google.com/travel/hotels?q=" + encodeURIComponent(`${name} ${tripDate} to ${out}`));
+    add("Booking.com", `https://www.booking.com/searchresults.html?ss=${encodeURIComponent(name)}&checkin=${tripDate}&checkout=${out}&group_adults=1&no_rooms=1`);
+  }
+  if (SITES[p]) add((air ? "Award search: " : "Points rate: ") + PARTNERS[p].n.split(" ")[0], SITES[p]);
+  return wrap;
+}
 // Cash prices the viewer found, keyed "partner|spot index". One seeded example: a Google Flights check on 25 Sep 2026.
 const cashPrices = LS.get("pd_cash", {});
 const DEFAULT_CASH = {"jal|0": {cash: 70000, tax: 0}};
@@ -812,20 +867,20 @@ function openGuide(p){
 
   if (g){
     const sp = el("div"); sp.append(el("h4", "", P.k === "air" ? "Where it can take you" : "Where you can stay"));
-    sp.append(el("p", "small muted", "Enter the cash price you find for the same trip, and the taxes the airline asks for on the award booking. The page works out what each point is really worth on that trip."));
+    const dl = el("label", "small muted"); dl.htmlFor = "tripDate"; dl.textContent = (P.k === "air" ? "Travel date for the searches " : "Check-in date for the searches ");
+    dl.style.display = "flex"; dl.style.alignItems = "center"; dl.style.gap = "8px"; dl.style.flexWrap = "wrap";
+    const di = el("input"); di.type = "date"; di.id = "tripDate"; di.value = tripDate; di.min = new Date().toISOString().slice(0, 10);
+    di.style.width = "auto"; di.style.padding = "4px 8px";
+    di.addEventListener("change", () => { if (!di.value) return; tripDate = di.value; LS.set("pd_date", tripDate); openGuide(p); });
+    dl.append(di); sp.append(dl);
+    sp.append(el("p", "small muted", "Each trip links to the cash price on fare sites and to award-seat searches for that date. Enter the cash price you find and the taxes the airline asks for on the award booking; the page works out what each point is really worth on that trip. Prices aren't fetched automatically."));
     const st = el("table");
     st.innerHTML = `<thead><tr><th>${P.k === "air" ? "To" : "Hotel"}</th>${P.k === "air" ? "<th>From</th>" : ""}<th>Cabin</th><th class="r">${P.k === "air" ? "Miles one-way" : "Points / night"}</th><th class="r">Your card pts</th><th>You can book</th><th class="r">Cash price ₹</th><th class="r">Award taxes ₹</th><th class="r">₹ per point</th></tr></thead>`;
     const sb = el("tbody");
     g.spots.forEach((s, i) => {
       const tr = el("tr");
       const to = el("td"); to.append(el("div", "", s.to)); if (s.note) to.append(el("div", "small muted", s.note)); to.style.whiteSpace = "normal"; to.style.minWidth = "180px";
-      const q = P.k === "air"
-        ? `one way ${/business|suites/i.test(s.cab) ? "business class " : /premium/i.test(s.cab) ? "premium economy " : ""}flights from ${(s.from || "").split(/[\/,]| via /)[0].trim()} to ${s.to.split(/[\/,(]| or |, then /)[0].replace(/^Anywhere in /, "").trim()}`
-        : s.to.split(/[\/,]/)[0].trim();
-      const a = el("a", "small", P.k === "air" ? "Check fare on Google Flights ↗" : "Check rate on Google Hotels ↗");
-      a.href = (P.k === "air" ? "https://www.google.com/travel/flights?q=" : "https://www.google.com/travel/hotels?q=") + encodeURIComponent(q);
-      a.target = "_blank"; a.rel = "noopener"; a.style.color = "var(--accent)";
-      to.append(a);
+      to.append(fareLinks(p, i, s, P.k === "air"));
       tr.append(to);
       if (P.k === "air") tr.append(el("td", "", s.from || ""));
       tr.append(el("td", "", s.cab === "Hotel" ? "Room" : s.cab));
@@ -873,7 +928,7 @@ function openGuide(p){
     }
     body.append(el("p", "small muted", "Prices are the lowest one-way award prices seen in 2026; seats at that price are limited and taxes are extra. Find the seat first, then transfer." + (g.src ? " Source: " + g.src + "." : "")));
   }
-  if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  if (!dlg.open){ if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", ""); }
   body.scrollTop = 0;
 }
 
