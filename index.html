@@ -394,7 +394,7 @@ const GUIDES = {
       {to:"Paris", from:"Mumbai", cab:"Economy", m:30000, note:"About; round trip is typically 60,000, or 45,000 during a Promo Rewards sale"},
       {to:"Paris / Amsterdam and Europe", from:"Delhi / Mumbai / Bengaluru", cab:"Business", note:"Dynamic price; check flyingblue.com"}],
     steps:["Create a Flying Blue account.","Search on airfrance.com or klm.com. Prices move with demand.","Check Promo Rewards on the 1st of each month: 25–50% off selected routes. India is included only a few times a year.","Transfer (Atlas 1:2, HDFC Infinia 1:1) and book."],
-    watch:["Taxes and surcharges from India are about ₹14,000–16,000 on a round trip.","Miles expire after 24 months with no activity."],
+    watch:["Since 8 Sep 2026 awards come as Light, Standard and Flex. The cheapest price is now a Light fare, which has no checked bag and no free changes.","Taxes and surcharges from India are about ₹14,000–16,000 on a round trip.","Miles expire after 24 months with no activity."],
     src:"Magnify Promo Rewards guide"},
   airindia:{about:"Air India's own programme (Star Alliance). Cheapest way to use points for short international hops from India.",
     spots:[
@@ -766,6 +766,14 @@ function renderTrips(){
     const funded = x.pl.srcs.filter(s => s.pts > 0).map(s => s.prog.card);
     d.querySelector(".cost").textContent = `${fmt(x.s.m)} ${x.s.cab === "Hotel" ? "pts / night" : "miles one-way"}` +
       (best.usable >= cardPts ? ` = ${fmt(cardPts)} ${best.prog.card} pts` : funded.length ? ` · from ${funded.join(" + ")}` : ` · best rate: ${best.prog.card} ${ratioTxt(best.ratio)}`);
+    const idx = GUIDES[x.p].spots.indexOf(x.s);
+    const fare = fareFor(x.p + "|" + idx);
+    if (fare.cash){
+      const per = Math.max(0, fare.cash - (fare.tax || 0)) / x.s.m;
+      const f = el("div", "meta", `Cash fare ${inr(fare.cash)} → ₹${per.toFixed(2)} a point` + (fare.snap ? ` (checked ${fare.snap.checked.slice(5)})` : ""));
+      if (per >= val(x.p)) f.style.color = "var(--good)";
+      d.append(f);
+    }
     d.addEventListener("click", () => openGuide(x.p));
     box.append(d);
   });
@@ -829,9 +837,15 @@ function fareLinks(p, i, s, air){
   if (SITES[p]) add((air ? "Award search: " : "Points rate: ") + PARTNERS[p].n.split(" ")[0], SITES[p]);
   return wrap;
 }
-// Cash prices the viewer found, keyed "partner|spot index". One seeded example: a Google Flights check on 25 Sep 2026.
+// Weekly cash-fare snapshot, keyed like CODES ("partner|spot index"). Filled by the Monday check from Google Flights:
+// cash = cheapest one-way fare in ₹ for 1 adult in the spot's cabin, travel = date searched, checked = date looked up.
+const FARES = {
+  "jal|0": {cash: 70000, travel: "", checked: "2026-09-25", src: "Google Flights (Pratik's check)"},
+  "jal|1": {cash: 198255, travel: "2026-12-15", checked: "2026-09-25", src: "Google Flights, JAL nonstop"}
+};
+// Cash prices the viewer typed in, keyed "partner|spot index". They override the snapshot.
 const cashPrices = LS.get("pd_cash", {});
-const DEFAULT_CASH = {"jal|0": {cash: 70000, tax: 0}};
+function fareFor(key){ const own = cashPrices[key]; if (own && own.cash) return {...own, own: true}; const f = FARES[key]; return f ? {cash: f.cash, tax: own?.tax || 0, snap: f} : (own || {}); }
 function openGuide(p){
   const g = GUIDES[p], P = PARTNERS[p], pl = pool(p);
   $("gKind").textContent = P.k === "air" ? "Airline programme" : "Hotel programme";
@@ -893,9 +907,15 @@ function openGuide(p){
       tr.append(c);
       // Cash comparison
       const key = p + "|" + i;
-      const saved = cashPrices[key] || DEFAULT_CASH[key] || {};
+      const saved = fareFor(key);
       const mk = (id, v) => { const td = el("td", "r"); const inp = el("input"); inp.type = "number"; inp.min = "0"; inp.step = "500"; inp.id = id; inp.value = v ?? ""; inp.placeholder = "—"; inp.style.width = "96px"; inp.style.fontFamily = "var(--mono)"; inp.style.padding = "4px 6px"; td.append(inp); return [td, inp]; };
       const [cTd, cIn] = mk("cash_" + p + "_" + i, saved.cash);
+      const snapNote = el("div", "small muted");
+      snapNote.style.whiteSpace = "normal"; snapNote.style.maxWidth = "120px"; snapNote.style.marginLeft = "auto";
+      if (saved.snap) snapNote.textContent = "Snapshot " + saved.snap.checked.slice(5) + (saved.snap.travel ? " for " + saved.snap.travel.slice(5) : "");
+      else if (saved.own) snapNote.textContent = "Your price";
+      cTd.append(snapNote);
+      cIn.addEventListener("input", () => { snapNote.textContent = cIn.value ? "Your price" : ""; });
       const [xTd, xIn] = mk("tax_" + p + "_" + i, saved.tax);
       const out = el("td", "r num");
       const calc = () => {
