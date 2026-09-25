@@ -137,7 +137,7 @@ section.panel{display:flex;flex-direction:column;gap:12px}
     <div>
       <div class="eyebrow">Credit card points · transfer partners · ₹ value</div>
       <h1>Points Desk</h1>
-      <p class="muted small" style="margin:6px 0 0;max-width:62ch">Balances from your Gmail, ranked against every transfer partner each card allows. Ratios checked 25 Sep 2026, including Axis's 23 Sep reshuffle.</p>
+      <p class="muted small" id="lede" style="margin:6px 0 0;max-width:62ch">Your card points balances, ranked against every transfer partner each card allows. Ratios checked 25 Sep 2026, including Axis's 23 Sep reshuffle.</p>
     </div>
     <div class="worth">
       <div class="eyebrow">Best-case worth, all cards</div>
@@ -384,7 +384,7 @@ function render(){
   $("totalWorth").textContent = inr(total);
   $("totalNote").textContent = filter === "all" ? "using each card's best option" : ("best " + (filter === "air" ? "flight" : "hotel") + " option per card");
   const anyEx = PROGRAMS.some(p => balances[p.key]?.src === "ex");
-  $("exampleNote").textContent = anyEx ? "Showing example balances. Scan Gmail or type your own." : "";
+  $("exampleNote").textContent = anyEx ? (window.claude && window.claude.use ? "Showing example balances. Scan Gmail or type your own." : "Showing example balances. Type your own into each card.") : "";
   renderMatrix();
 }
 
