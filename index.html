@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Credit card reward points calculator: Axis EDGE Miles, HDFC and Amex transfer partners ranked by rupee value.">
+<meta name="description" content="Credit card reward points calculator: Axis EDGE Miles, HDFC and Amex transfer partners ranked by rupee value, with where-to-fly guides.">
 <title>Points Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -127,6 +127,31 @@ section.panel{display:flex;flex-direction:column;gap:12px}
 .vals input{padding:5px 8px;font-family:var(--mono)}
 .notes{font-size:13px;color:var(--ink-2);display:flex;flex-direction:column;gap:6px;max-width:75ch}
 .notes a{color:var(--accent)}
+/* partner links */
+button.pl{border:0;background:none;padding:0;font-weight:inherit;color:inherit;text-align:left;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px;border-radius:2px}
+button.pl:hover{color:var(--accent);text-decoration-color:var(--accent)}
+.how{align-self:flex-start;margin-top:4px;font-size:13px;padding:5px 10px;background:var(--surface);border-color:var(--brass);color:var(--brass)}
+
+/* trips */
+.trips{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.trip{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;font-weight:400;width:100%;display:flex;flex-direction:column;gap:6px}
+.trip .to{font-family:var(--display);font-weight:700;font-size:16.5px}
+.trip .meta{font-size:12.5px;color:var(--ink-2)}
+.trip .cost{font-family:var(--mono);font-size:13px}
+.pill{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px}
+.pill.ok{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.pill.no{background:var(--sunk);color:var(--ink-3)}
+.pill.cab{background:var(--accent-soft);color:var(--accent)}
+
+/* guide dialog */
+dialog#guide{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
+dialog#guide::backdrop{background:rgba(10,16,20,.5)}
+.g-head{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--line);padding:16px 20px;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;z-index:1}
+.g-body{padding:18px 20px 24px;display:flex;flex-direction:column;gap:20px}
+.g-body h4{margin:0 0 8px;font-family:var(--display);font-size:15px}
+.g-body ol,.g-body ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:5px}
+.g-have{background:var(--brass-soft);border-radius:10px;padding:12px 14px;font-size:14px}
+.g-have .big{font-family:var(--mono);font-size:20px;color:var(--brass)}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 
@@ -178,6 +203,12 @@ section.panel{display:flex;flex-direction:column;gap:12px}
 
   <div class="wallets" id="wallets"></div>
 
+  <section class="panel" aria-labelledby="tripH">
+    <h2 id="tripH">Where your points can take you</h2>
+    <p class="small muted" style="margin:0">One-way award flights from India and hotel nights, priced in partner points. "You can book" counts all your cards that transfer to that partner. Tap a trip for the full how-to.</p>
+    <div class="trips" id="trips"></div>
+  </section>
+
   <section class="panel" aria-labelledby="mxH">
     <h2 id="mxH">Which card to use for each partner</h2>
     <p class="small muted" style="margin:0">Partner points you get per 1 card point. Highlighted cell is the card that gives the most for that partner.</p>
@@ -196,9 +227,18 @@ section.panel{display:flex;flex-direction:column;gap:12px}
     <h3>About the numbers</h3>
     <div>Axis caps are per calendar year per customer: Atlas 30,000 Group A / 1,20,000 Group B; Magnus for Burgundy 2,00,000 / 8,00,000; Magnus 1,00,000 / 4,00,000. Values here assume the full cap is still open.</div>
     <div>Axis changed ratios again on 23 Sep 2026 (BA, Cathay, Finnair, Qatar, Vietnam and Accor now convert at the lower rate). Check the ratio on the bank's portal before every transfer; transfers can't be reversed.</div>
+    <div>Award prices are the lowest (saver / off-peak) one-way prices seen in 2026. Seats at that price are limited, taxes and fuel surcharges are extra, and airlines change charts without notice. Find the seat on the airline's site first, then transfer.</div>
     <div>Sources: <a href="https://cardexpress.in/articles/axis-edge-transfer-partners-group-a-group-b" target="_blank" rel="noopener">Card Express (Axis, 23 Sep)</a> · <a href="https://livefromalounge.com/axis-bank-travel-edge-rewards-reshuffle-2026/" target="_blank" rel="noopener">Live From A Lounge</a> · <a href="https://magnify.club/guides/axis-bank-group-a-group-b-transfer-partners/" target="_blank" rel="noopener">Magnify (Axis groups, caps)</a> · <a href="https://pointsmath.com/hdfc-bank-points-transfer-partners/" target="_blank" rel="noopener">PointsMath (HDFC, 15 Aug)</a> · <a href="https://magnify.club/guides/amex-india-transfer-partners/" target="_blank" rel="noopener">Magnify (Amex, 18 Aug)</a></div>
   </section>
 </div>
+
+<dialog id="guide" aria-labelledby="gTitle">
+  <div class="g-head">
+    <div><div class="eyebrow" id="gKind"></div><h2 id="gTitle"></h2></div>
+    <button type="button" id="gClose">Close</button>
+  </div>
+  <div class="g-body" id="gBody"></div>
+</dialog>
 
 <script>
 (function(){
@@ -220,10 +260,10 @@ const PARTNERS = {
   virgin:{n:"Virgin Atlantic Flying Club",k:"air",v:1.1}, lifemiles:{n:"Avianca LifeMiles",k:"air",v:1.1},
   milesmore:{n:"Lufthansa Miles & More",k:"air",v:0.9}, airasia:{n:"AirAsia Rewards",k:"air",v:0.6},
   spicejet:{n:"SpiceJet SpiceClub",k:"air",v:1.0}, indigo:{n:"IndiGo BluChip",k:"air",v:1.0},
-  accor:{n:"Accor ALL",k:"hotel",v:2.0}, hilton:{n:"Hilton Honors",k:"hotel",v:0.35},
+  accor:{n:"Accor ALL",k:"hotel",v:2.2}, hilton:{n:"Hilton Honors",k:"hotel",v:0.35},
   ihg:{n:"IHG One Rewards",k:"hotel",v:0.45}, marriott:{n:"Marriott Bonvoy",k:"hotel",v:0.7},
-  wyndham:{n:"Wyndham Rewards",k:"hotel",v:0.8}, radisson:{n:"Radisson Rewards",k:"hotel",v:0.3},
-  itc:{n:"Club ITC",k:"hotel",v:0.8}, orchid:{n:"Orchid Rewards",k:"hotel",v:0.5},
+  wyndham:{n:"Wyndham Rewards",k:"hotel",v:0.6}, radisson:{n:"Radisson Rewards",k:"hotel",v:0.3},
+  itc:{n:"Club ITC",k:"hotel",v:1.0}, orchid:{n:"Orchid Rewards",k:"hotel",v:0.5},
   postcard:{n:"The Postcard Sunshine Club",k:"hotel",v:0.8}
 };
 
@@ -258,6 +298,172 @@ const PROGRAMS = [
    base:{v:0.5, label:"18K/24K Gold Collection vouchers"},
    r:{hilton:[1.5],marriott:[1],virgin:[.8],cathay:[.5],ba:[.5],qatar:[.5],krisflyer:[.5]}}
 ];
+
+// How-to guides. spots: one-way award prices from India (saver / off-peak, 2026), or per-night hotel prices.
+// m = partner points needed; omit m where the price is dynamic.
+const GUIDES = {
+  jal:{about:"Japan Airlines' own programme (oneworld). JAL flies nonstop from Delhi and Bengaluru to Tokyo, and its economy cabin is one of the best anywhere.",
+    spots:[
+      {to:"Tokyo, Japan", from:"Delhi / Bengaluru", cab:"Economy", m:17500, note:"JAL nonstop, base award seat"},
+      {to:"Tokyo, Japan", from:"Delhi / Bengaluru", cab:"Business", m:40000, note:"JAL nonstop, base award seat; 'PLUS' seats cost more but are easier to find"},
+      {to:"Anywhere in Japan", from:"Tokyo", cab:"Economy", m:4000, note:"JAL domestic flights, 4,000–10,000 miles each way. Add Sapporo, Okinawa or Osaka to a Tokyo trip."}],
+    steps:["Open a free JAL Mileage Bank account on jal.co.jp and add your name exactly as on your passport.","Search award seats on JAL's site for your dates before moving any points.","Transfer from your card (Atlas gives 2 JAL miles per EDGE Mile). Axis transfers take about 7–14 days to arrive.","Book on jal.co.jp. Partner awards (Qatar, Cathay, Emirates and others) use a distance chart and allow up to 3 stopovers."],
+    watch:["New JMB accounts may have to wait about 60 days before booking an award, so open the account early.","Miles last 36 months from the month they're added.","Partner flights on BA and Finnair carry high fuel surcharges; JAL's own flights carry lower ones."],
+    src:"PointsDojo JAL guide for Indians; Upgraded Points"},
+  krisflyer:{about:"Singapore Airlines' programme (Star Alliance). Flies from Delhi, Mumbai, Bengaluru, Chennai, Kolkata, Hyderabad and more to Singapore, with connections across Asia and Australia.",
+    spots:[
+      {to:"Singapore", from:"Delhi / Mumbai", cab:"Business", m:45000, note:"Saver award"},
+      {to:"Singapore", from:"Mumbai / Delhi", cab:"Suites (First)", m:61500, note:"A380 Suites, Saver award"},
+      {to:"Tokyo or Seoul", from:"India via Singapore", cab:"Business", m:95000, note:"About; priced as one award, not two"},
+      {to:"Sydney or Melbourne", from:"India via Singapore", cab:"Business", m:108500, note:"About"},
+      {to:"USA / Canada", from:"India", cab:"Business", m:105000, note:"About; on Star Alliance partners"}],
+    steps:["Create a KrisFlyer account on singaporeair.com.","Find a Saver seat on singaporeair.com first.","Transfer points (HDFC Infinia 1:1, Atlas 1:2). Book as soon as the miles arrive.","Saver awards must be ticketed when you book; there are no holds."],
+    watch:["KrisFlyer miles expire 3 years after they're added.","Saver seats on popular dates go early; Advantage awards cost more but are easier to find."],
+    src:"Great Indian Miles; PointsMax"},
+  aeroplan:{about:"Air Canada's programme (Star Alliance). Fixed prices by distance on any Star Alliance airline: Air India, Lufthansa, Swiss, Turkish, Thai, ANA, Singapore.",
+    spots:[
+      {to:"Frankfurt / Zurich / Vienna / Istanbul", from:"Delhi / Mumbai", cab:"Economy", m:30000, note:"Lufthansa, Swiss, Austrian, Turkish"},
+      {to:"Frankfurt / Zurich / Vienna / Istanbul", from:"Delhi / Mumbai", cab:"Business", m:40000, note:"Best-value India–Europe business award"},
+      {to:"London / Paris", from:"Delhi", cab:"Business", m:70000, note:""},
+      {to:"New York / Chicago / Newark", from:"Delhi", cab:"Business", m:90000, note:"Air India nonstop"},
+      {to:"Bangkok", from:"Delhi / Mumbai", cab:"Business", m:47500, note:"Thai Airways"},
+      {to:"Singapore or Tokyo", from:"Delhi / Mumbai / Bengaluru", cab:"Business", m:75000, note:"Singapore Airlines / ANA"},
+      {to:"Delhi ↔ Mumbai (domestic)", from:"Delhi / Mumbai", cab:"Business", m:12500, note:"Air India, under 1,000 miles"}],
+    steps:["Create an Aeroplan account on aircanada.com.","Search the route on aircanada.com; it shows seats on Star Alliance partners.","Transfer (Atlas 1:2, HDFC Infinia 2:1), then book online."],
+    watch:["Aeroplan adds a small booking fee on partner awards.","Chart changed on 1 June 2026; routes through Asia got about 25% dearer."],
+    src:"CardExpert, June 2026 Aeroplan chart"},
+  turkish:{about:"Turkish Airlines' programme (Star Alliance). Turkish flies from Delhi and Mumbai to Istanbul, with onward flights to more countries than any other airline.",
+    spots:[
+      {to:"Europe ↔ Istanbul", from:"Paris and other European cities", cab:"Business", m:25000, note:"20,000–25,000 miles; good for the second half of a Europe trip"},
+      {to:"Within the USA", from:"Any US city", cab:"Economy", m:15000, note:"United flights; 22,500 in business"}],
+    steps:["Create a Miles&Smiles account on turkishairlines.com.","Check award availability on turkishairlines.com, or on United/Aeroplan for partner seats.","Transfer (Atlas 1:2, HDFC Infinia 2:1), then book online or by phone for partner flights."],
+    watch:["Air India blocks its award seats to Miles&Smiles, so use Turkish or other partners from India.","Turkish has raised prices without notice twice since 2024. Price the exact trip before you transfer."],
+    src:"AwardWallet; Upgraded Points"},
+  flyingblue:{about:"Air France-KLM's programme (SkyTeam). About 45 flights a week from Delhi, Mumbai, Bengaluru and Hyderabad to Paris and Amsterdam, and on to Europe and the Americas.",
+    spots:[
+      {to:"Paris", from:"Mumbai", cab:"Economy", m:30000, note:"About; round trip is typically 60,000, or 45,000 during a Promo Rewards sale"},
+      {to:"Paris / Amsterdam and Europe", from:"Delhi / Mumbai / Bengaluru", cab:"Business", note:"Dynamic price; check flyingblue.com"}],
+    steps:["Create a Flying Blue account.","Search on airfrance.com or klm.com. Prices move with demand.","Check Promo Rewards on the 1st of each month: 25–50% off selected routes. India is included only a few times a year.","Transfer (Atlas 1:2, HDFC Infinia 1:1) and book."],
+    watch:["Taxes and surcharges from India are about ₹14,000–16,000 on a round trip.","Miles expire after 24 months with no activity."],
+    src:"Magnify Promo Rewards guide"},
+  airindia:{about:"Air India's own programme (Star Alliance). Cheapest way to use points for short international hops from India.",
+    spots:[
+      {to:"Dubai, Doha, Singapore, Bangkok, Bali, Phuket, Kuala Lumpur", from:"Delhi", cab:"Economy", m:12000, note:"Also Manila, Ho Chi Minh City, Jeddah, Riyadh, Nairobi"},
+      {to:"Mauritius", from:"Mumbai", cab:"Economy", m:12000, note:""},
+      {to:"London and Europe", from:"India", cab:"Economy", m:35000, note:"From"},
+      {to:"USA or Australia", from:"India", cab:"Economy", m:40000, note:"From; Delhi–San Francisco dropped from 77,000"},
+      {to:"Canada", from:"India", cab:"Economy", m:50000, note:"From"}],
+    steps:["Log in to Maharaja Club on airindia.com.","Search 'Book with points' for your dates.","Transfer (Atlas 1:2, HDFC Infinia 2:1) and book."],
+    watch:["New award prices started in April 2026, and domestic business got about 9% cheaper.","Business prices vary by route; check before transferring."],
+    src:"AwardWallet; Magnify (April 2026 changes)"},
+  qatar:{about:"Qatar Airways Privilege Club, using Avios. Qatar flies from 13+ Indian cities to Doha, with onward flights to Europe, Africa and the Americas. Qsuite is its business class.",
+    spots:[
+      {to:"Doha", from:"Delhi / Mumbai / most Indian cities", cab:"Economy", m:13000, note:"Flights under ~1,600 miles"},
+      {to:"London", from:"Doha", cab:"Business (Qsuite)", m:42500, note:"Off-peak; add the India–Doha leg"},
+      {to:"USA", from:"Doha", cab:"Business (Qsuite)", m:70000, note:"Off-peak"}],
+    steps:["Create a Privilege Club account on qatarairways.com.","Search awards there. Peak dates cost 30–35% more.","Avios move freely between Qatar and British Airways accounts, so you can top up from either.","Most Indian cards now convert at 2:1 to Qatar, so check the value first."],
+    watch:["Taxes and surcharges can be high on long-haul awards.","Axis moved Qatar to the lower 2:1 rate on 23 Sep 2026."],
+    src:"AwardTravelFinder; Upgraded Points"},
+  ba:{about:"British Airways Club, using Avios. BA flies from Delhi, Mumbai, Bengaluru, Hyderabad and Chennai to London.",
+    spots:[
+      {to:"London", from:"Delhi", cab:"Economy", m:30000, note:"Off-peak; 35,000 on peak dates"},
+      {to:"London", from:"Delhi", cab:"Premium Economy", m:47500, note:"Off-peak; 67,500 on peak dates"}],
+    steps:["Create a BA Club account on britishairways.com.","Search 'Book with Avios'.","You can also use Avios on Qatar via a Qatar account (Avios move between the two)."],
+    watch:["BA often keeps India award seats blocked until about 45 days before departure. Plan for that.","BA charges high surcharges on its own flights.","Most Indian cards now give only 1 Avios per 2 points."],
+    src:"AwardTravelFinder"},
+  finnair:{about:"Finnair Plus, using Avios. Finnair flies from Delhi to Helsinki, with onward flights across Europe and to Lapland.",
+    spots:[{to:"Helsinki and Europe", from:"Delhi", cab:"Economy / Business", note:"Avios pricing; check finnair.com"}],
+    steps:["Create a Finnair Plus account.","Search awards on finnair.com.","Avios can be moved between Finnair, BA and Qatar accounts."],
+    watch:["Finnair has high fuel surcharges.","Most cards now convert 2:1; HDFC Infinia is still 1:1."], src:""},
+  united:{about:"United MileagePlus (Star Alliance). No fuel surcharges on award tickets, and a free stopover on round trips.",
+    spots:[
+      {to:"Europe", from:"USA", cab:"Economy", m:30000, note:"Saver awards from"},
+      {to:"Europe", from:"USA", cab:"Business", m:60000, note:"Saver awards from"}],
+    steps:["Create a MileagePlus account.","Search united.com; it shows Star Alliance partner seats too.","Transfer (Atlas 1:2) and book."],
+    watch:["Air India blocks award seats to United, so from India use Lufthansa, Swiss, Turkish or Singapore flights."],
+    src:"AwardLocker; Live From A Lounge"},
+  etihad:{about:"Etihad Guest. Etihad flies from about 10 Indian cities to Abu Dhabi, with onward flights to Europe, the US and Australia.",
+    spots:[
+      {to:"London", from:"Abu Dhabi", cab:"Business", m:70000, note:"From; add the India–Abu Dhabi leg"},
+      {to:"Abu Dhabi", from:"Indian cities", cab:"Economy / Business", note:"Distance-based; use Etihad's miles calculator"}],
+    steps:["Create an Etihad Guest account.","Price the trip on etihad.com.","Transfer (Atlas 1:2) and book."],
+    watch:["Check the calculator first; prices depend on distance and the date."], src:"AwardTravelFinder"},
+  cathay:{about:"Cathay Pacific Asia Miles (oneworld). Cathay flies from Delhi, Mumbai, Bengaluru, Chennai and Hyderabad to Hong Kong, and on to Asia, Australia and North America.",
+    spots:[
+      {to:"Hong Kong", from:"India", cab:"Business", note:"Distance-based; short-haul business starts from 27,000"},
+      {to:"North America or Europe", from:"Hong Kong", cab:"Business", m:91000, note:"5,001–7,500 mile flights, from May 2026"}],
+    steps:["Create an Asia Miles account on cathaypacific.com.","Search awards there.","Transfer and book."],
+    watch:["Axis now converts at 2:1 to Asia Miles (since 23 Sep 2026), so the value is low from Atlas."],
+    src:"Mainly Miles; MileLion"},
+  thai:{about:"Thai Royal Orchid Plus (Star Alliance). Thai flies from 8+ Indian cities to Bangkok, with onward flights to Phuket, Chiang Mai, Bali, Tokyo and Australia.",
+    spots:[{to:"Bangkok, then Phuket / Chiang Mai / Krabi", from:"Delhi / Mumbai / Bengaluru / Kolkata", cab:"Economy / Business", note:"Check thaiairways.com; Aeroplan prices Bangkok business at 47,500"}],
+    steps:["Create a Royal Orchid Plus account.","Search awards on thaiairways.com.","Transfer and book."], watch:["Compare with Aeroplan's price for the same Thai flight."], src:""},
+  ethiopian:{about:"Ethiopian ShebaMiles (Star Alliance). Ethiopian flies from Delhi, Mumbai, Bengaluru and Chennai to Addis Ababa, then across Africa.",
+    spots:[{to:"Addis Ababa, Nairobi, Cape Town, Zanzibar", from:"India", cab:"Economy / Business", note:"Check ethiopianairlines.com"}],
+    steps:["Create a ShebaMiles account.","Search awards online.","Transfer and book."], watch:["Useful mainly for trips to Africa."], src:""},
+  qantas:{about:"Qantas Frequent Flyer (oneworld). Qantas flies Bengaluru–Sydney nonstop.",
+    spots:[{to:"Sydney and the rest of Australia", from:"Bengaluru", cab:"Economy / Business", note:"Check qantas.com Classic Reward prices"}],
+    steps:["Create a Qantas Frequent Flyer account.","Search Classic Rewards on qantas.com.","Transfer and book."], watch:["Qantas moved from Axis Group B to Group A, where Atlas's cap is 30,000 a year."], src:""},
+  vietnam:{about:"Vietnam Airlines LotusMiles (SkyTeam). Flights from Delhi and Mumbai to Hanoi and Ho Chi Minh City.",
+    spots:[{to:"Hanoi, Ho Chi Minh City, Da Nang, Phu Quoc", from:"Delhi / Mumbai", cab:"Economy / Business", note:"Check vietnamairlines.com"}],
+    steps:["Create a LotusMiles account.","Search awards online.","Transfer and book. HDFC Infinia gives 1:1 here."], watch:["Axis converts at 2:1 since 23 Sep 2026."], src:""},
+  virgin:{about:"Virgin Atlantic Flying Club. Virgin flies from Delhi, Mumbai and Bengaluru to London, and Flying Club can book Delta, Air France-KLM and ANA flights.",
+    spots:[{to:"London", from:"Delhi / Mumbai / Bengaluru", cab:"Economy / Upper Class", note:"Check virginatlantic.com"}],
+    steps:["Create a Flying Club account.","Search 'Pay with points'.","Transfer from Amex (1,000 MR → 800 Virgin points)."], watch:["Virgin's own flights carry surcharges."], src:""},
+  lifemiles:{about:"Avianca LifeMiles (Star Alliance). Books Star Alliance flights with no fuel surcharges.",
+    spots:[{to:"Europe via Lufthansa, Swiss, Turkish", from:"India", cab:"Economy / Business", note:"Check lifemiles.com"}],
+    steps:["Create a LifeMiles account.","Search awards on lifemiles.com.","Transfer from HDFC (2:1 on Infinia) and book."], watch:["Expiry after 12 months with no activity."], src:""},
+  milesmore:{about:"Lufthansa Miles & More. Lufthansa, Swiss and Austrian fly from Delhi, Mumbai, Bengaluru and Chennai to Frankfurt, Munich, Zurich and Vienna.",
+    spots:[{to:"Frankfurt / Munich / Zurich / Vienna", from:"Delhi / Mumbai / Bengaluru", cab:"Economy / Business", note:"Check miles-and-more.com; watch the monthly award deals"}],
+    steps:["Create a Miles & More account.","Search award flights on lufthansa.com.","Transfer from Axis (1:1 on Atlas; Group B, capped at 2,00,000 a year)."], watch:["Surcharges on Lufthansa flights are high; Aeroplan often prices the same seat cheaper."], src:""},
+  airasia:{about:"AirAsia Rewards. AirAsia flies from Kolkata, Kochi, Bengaluru, Chennai, Tiruchirappalli and more to Kuala Lumpur and Bangkok.",
+    spots:[{to:"Kuala Lumpur, Bangkok, Bali, Phuket", from:"South and East Indian cities", cab:"Economy", note:"Pay with points on airasia.com"}],
+    steps:["Create an AirAsia account.","Transfer, then use points as payment on airasia.com."], watch:["Low-cost airline: bags and meals are extra."], src:""},
+  spicejet:{about:"SpiceJet SpiceClub. Points pay for SpiceJet flights across India and to the Gulf.",
+    spots:[{to:"Indian cities, Dubai", from:"India", cab:"Economy", note:"Points pay for the fare"}],
+    steps:["Log in to SpiceClub.","Transfer, then pay with points."], watch:["Low cash value; better options exist on most cards."], src:""},
+  indigo:{about:"IndiGo BluChip. Points pay for IndiGo flights, the biggest network in India.",
+    spots:[{to:"Any IndiGo route in India and abroad", from:"India", cab:"Economy", note:"Points pay for the fare"}],
+    steps:["Log in to BluChip on goindigo.in.","Transfer, then pay with BluChip on the booking page."], watch:["Atlas's 1:2 rate for IndiGo is introductory; the standard rate is 2:1."], src:""},
+  accor:{about:"Accor Live Limitless. Points are worth a fixed amount off any bill: 2,000 points = €40 (about ₹4,400). Works at Ibis, Novotel, Pullman, Sofitel, Fairmont, Raffles, Mövenpick and more.",
+    spots:[
+      {to:"One night at a Novotel or Ibis in India", from:"", cab:"Hotel", m:2000, note:"2,000 points = €40 off the bill"},
+      {to:"Raffles Udaipur / Jaipur, Sofitel Mumbai BKC, Fairmont Jaipur", from:"", cab:"Hotel", note:"Points reduce the cash price at a fixed rate, any date"}],
+    steps:["Create an ALL account.","Book the hotel on all.accor.com and choose 'use my points' at checkout, in blocks of 2,000."],
+    watch:["Points have a fixed value, so there's no sweet spot; the only question is the transfer ratio.","Axis now converts at 2:1 (5:2 on Magnus)."],
+    src:"Live From A Lounge; One Mile at a Time"},
+  hilton:{about:"Hilton Honors. Best used overseas, especially Maldives resorts. Points go much further there than at Hilton hotels in Indian cities.",
+    spots:[
+      {to:"Conrad Maldives Rangali Island", from:"", cab:"Hotel", m:140000, note:"Per night; 140,000–160,000"},
+      {to:"Waldorf Astoria Maldives Ithaafushi", from:"", cab:"Hotel", m:150000, note:"Per night when standard rooms show; up to 250,000"},
+      {to:"Hilton hotels in Goa, Bengaluru, Mumbai", from:"", cab:"Hotel", note:"Varies by date; compare with the cash price"}],
+    steps:["Create a Hilton Honors account.","Search with 'Use points' on hilton.com.","Transfer (Atlas 1:2, Amex 1:1.5) and book."],
+    watch:["Hilton raised standard-room prices to as much as 250,000 a night in 2026.","Silver status and above get the 5th award night free."],
+    src:"AwardWallet; One Mile at a Time"},
+  ihg:{about:"IHG One Rewards: InterContinental, Six Senses, Regent, Kimpton, Crowne Plaza, Holiday Inn.",
+    spots:[{to:"InterContinental Marine Drive Mumbai, Six Senses Fort Barwara, Kimpton Goa", from:"", cab:"Hotel", note:"Dynamic, 5,000–250,000 a night"}],
+    steps:["Create an IHG One Rewards account.","Search with 'Reward nights' on ihg.com.","Transfer and book."],
+    watch:["Prices are dynamic; check the exact dates.","IHG offers a 4th reward night free to some members; check your eligibility."], src:"The Points Guy"},
+  marriott:{about:"Marriott Bonvoy: JW Marriott, Ritz-Carlton, St. Regis, W and more, plus Maldives resorts.",
+    spots:[{to:"St. Regis / W / JW Marriott Maldives, JW Marriott Mussoorie", from:"", cab:"Hotel", note:"Dynamic pricing"}],
+    steps:["Create a Marriott Bonvoy account.","Search 'Use points'.","Book 5 nights to get the 5th free."], watch:["Only Amex (1:1) and HDFC (2:1) transfer here now; Axis dropped Marriott in April 2026."], src:""},
+  wyndham:{about:"Wyndham Rewards: Ramada, Wyndham, Days Inn and more. New fixed tiers from 15 Sep 2026.",
+    spots:[
+      {to:"Wyndham / Ramada hotels in India", from:"", cab:"Hotel", m:15000, note:"Per night; tiers are 5,000 / 15,000 / 30,000 / 45,000"},
+      {to:"Budget Wyndham-brand hotels", from:"", cab:"Hotel", m:5000, note:"Per night, lowest tier"}],
+    steps:["Create a Wyndham Rewards account.","Search free nights on wyndhamhotels.com.","Transfer and book."], watch:["Tiers changed on 15 Sep 2026; some hotels moved up."], src:"View from the Wing; PointsMath"},
+  itc:{about:"Club ITC Green Points: 1 point = ₹1 at ITC Hotels (ITC Maratha, Grand Chola, Maurya, Rajputana, Welcomhotel, Fortune, Storii).",
+    spots:[{to:"ITC Hotels across India", from:"", cab:"Hotel", note:"1 point = ₹1 off rooms, dining and spa"}],
+    steps:["Create a Club ITC account.","Transfer from HDFC (2:1).","Pay with Green Points at the hotel or when booking."],
+    watch:["Points can also move to Marriott at 2:3 (up to 5,000 a quarter)."], src:"CardAdvisor"},
+  radisson:{about:"Radisson Rewards: 150+ Radisson hotels across India.", spots:[{to:"Radisson hotels in India and abroad", from:"", cab:"Hotel", note:"Dynamic pricing"}],
+    steps:["Create a Radisson Rewards account.","Search reward nights.","Transfer and book."], watch:["Low value per point; usually not the best use."], src:""},
+  orchid:{about:"Orchid Rewards: The Orchid and Lotus hotel group in India.", spots:[{to:"Orchid / Lotus hotels in India", from:"", cab:"Hotel", note:"Check the programme site"}],
+    steps:["Create an account.","Transfer and redeem."], watch:["Small network; check for hotels where you're going."], src:""},
+  postcard:{about:"The Postcard Sunshine Club: boutique hotels in Goa, Rajasthan, the Himalayas, Sri Lanka and Bhutan.",
+    spots:[{to:"The Postcard hotels (Goa, Galle, Bhutan, Himalayas)", from:"", cab:"Hotel", note:"Check the programme site"}],
+    steps:["Join the Sunshine Club.","Transfer from Axis (1:2 on Atlas) and redeem."], watch:["Small, pricey hotels; points help most on high-rate dates."], src:""}
+};
 
 const DEFAULT_QUERY = '(from:axisbank.com OR from:hdfcbank.net OR from:hdfcbank.com OR from:aexp.com OR from:americanexpress.com) ("EDGE Miles" OR "EDGE Reward" OR "reward points" OR "Membership Rewards" OR "points balance" OR statement) newer_than:120d';
 
@@ -348,6 +554,10 @@ function render(){
       const x = base.per ? (best.per / base.per) : 0;
       let vs = `₹${best.per.toFixed(2)} per point · ${x.toFixed(1)}× the ${prog.base.label} value of ${inr(base.worth)}`;
       bestBox.querySelector(".vs").textContent = vs;
+      const how = document.createElement("button"); how.type = "button"; how.className = "how";
+      how.textContent = "How to use " + PARTNERS[best.p].n + " →";
+      how.addEventListener("click", () => openGuide(best.p));
+      bestBox.append(how);
       if (best.capped){
         const c = document.createElement("div"); c.className = "capnote";
         c.textContent = `Group ${best.grp} cap is ${fmt(prog.caps[best.grp])} a year. Send the remaining ${fmt(b.n - best.usable)} to the next-best option below.`;
@@ -367,7 +577,7 @@ function render(){
         tr.children[0].textContent = "Direct: " + prog.base.label;
       } else {
         tr.innerHTML = `<td></td><td class="r num"></td><td class="r num"></td><td class="r bar-cell"></td><td class="r num"></td>`;
-        tr.children[0].textContent = PARTNERS[r.p].n;
+        tr.children[0].append(plink(r.p));
         if (r.grp){ const g = document.createElement("span"); g.className = "grp"; g.textContent = r.grp; tr.children[0].append(g); }
         tr.children[1].textContent = ratioTxt(r.ratio);
         tr.children[2].textContent = b.n ? fmt(r.got) + (r.capped ? "*" : "") : "—";
@@ -386,6 +596,136 @@ function render(){
   const anyEx = PROGRAMS.some(p => balances[p.key]?.src === "ex");
   $("exampleNote").textContent = anyEx ? (window.claude && window.claude.use ? "Showing example balances. Scan Gmail or type your own." : "Showing example balances. Type your own into each card.") : "";
   renderMatrix();
+  renderTrips();
+}
+
+// ---------- Partner guides ----------
+function plink(p){
+  const b = document.createElement("button"); b.type = "button"; b.className = "pl";
+  b.textContent = PARTNERS[p].n; b.title = "How to use " + PARTNERS[p].n;
+  b.addEventListener("click", () => openGuide(p));
+  return b;
+}
+// What the viewer's cards can put into partner p
+function pool(p){
+  const srcs = [];
+  PROGRAMS.forEach(prog => {
+    const e = prog.r[p]; if (!e) return;
+    const [ratio, grp] = e;
+    const bal = balances[prog.key]?.n || 0;
+    let usable = bal;
+    if (grp && prog.caps) usable = Math.min(usable, prog.caps[grp]);
+    if (p === "milesmore" && prog.caps) usable = Math.min(usable, 200000);
+    srcs.push({prog, ratio, grp, bal, usable, pts: usable * ratio});
+  });
+  srcs.sort((a, b) => b.ratio - a.ratio);
+  return {srcs, total: srcs.reduce((s, x) => s + x.pts, 0), bestRatio: srcs.length ? srcs[0] : null};
+}
+function spotList(){
+  const out = [];
+  for (const [p, g] of Object.entries(GUIDES)){
+    if (filter !== "all" && PARTNERS[p].k !== filter) continue;
+    g.spots.forEach(s => { if (s.m) out.push({p, s}); });
+  }
+  return out;
+}
+function renderTrips(){
+  const box = $("trips"); box.textContent = "";
+  const items = spotList().map(({p, s}) => {
+    const pl = pool(p);
+    const n = Math.floor(pl.total / s.m);
+    return {p, s, pl, n, short: Math.max(0, s.m - pl.total)};
+  }).filter(x => x.pl.srcs.length);
+  const can = items.filter(x => x.n >= 1).sort((a, b) => b.s.m - a.s.m);
+  const near = items.filter(x => x.n < 1).sort((a, b) => a.short - b.short);
+  const show = can.length ? can.slice(0, 12).concat(near.slice(0, Math.max(0, 6 - can.length))) : near.slice(0, 9);
+  if (!show.length){ box.innerHTML = `<p class="small muted">Enter a balance to see trips.</p>`; return; }
+  show.forEach(x => {
+    const d = document.createElement("button"); d.type = "button"; d.className = "trip";
+    d.style.textAlign = "left";
+    const best = x.pl.bestRatio;
+    const cardPts = Math.ceil(x.s.m / best.ratio);
+    d.innerHTML = `<div><span class="pill cab"></span> <span class="pill"></span></div><div class="to"></div><div class="meta"></div><div class="cost num"></div>`;
+    d.querySelector(".cab").textContent = x.s.cab;
+    const st = d.querySelectorAll(".pill")[1];
+    if (x.n >= 1){ st.className = "pill ok"; st.textContent = x.n > 1 ? `You can book ${x.n}×` : "You can book 1"; }
+    else { st.className = "pill no"; st.textContent = `Need ${fmt(x.short)} more`; }
+    d.querySelector(".to").textContent = x.s.to;
+    d.querySelector(".meta").textContent = (x.s.from ? "From " + x.s.from + " · " : "") + PARTNERS[x.p].n;
+    d.querySelector(".cost").textContent = `${fmt(x.s.m)} ${x.s.cab === "Hotel" ? "pts / night" : "miles one-way"} = ${fmt(cardPts)} ${best.prog.card} pts`;
+    d.addEventListener("click", () => openGuide(x.p));
+    box.append(d);
+  });
+}
+const dlg = $("guide");
+$("gClose").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+function el(tag, cls, txt){ const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function openGuide(p){
+  const g = GUIDES[p], P = PARTNERS[p], pl = pool(p);
+  $("gKind").textContent = P.k === "air" ? "Airline programme" : "Hotel programme";
+  $("gTitle").textContent = P.n;
+  const body = $("gBody"); body.textContent = "";
+  if (g) body.append(el("p", "", g.about));
+
+  // What you have
+  const have = el("div", "g-have");
+  if (pl.total > 0){
+    have.append(el("div", "", "Your cards can move up to"));
+    have.append(el("div", "big", fmt(pl.total) + " " + (P.k === "air" ? "miles" : "points")));
+    have.append(el("div", "small", "Worth about " + inr(pl.total * val(p)) + " at ₹" + val(p) + " a point"));
+  } else have.append(el("div", "", "None of your cards have a balance that transfers here yet."));
+  body.append(have);
+
+  // Transfer table
+  const tw = el("div"); tw.append(el("h4", "", "How to get " + (P.k === "air" ? "miles" : "points")));
+  const t = el("table"); t.innerHTML = `<thead><tr><th>Card</th><th class="r">Ratio</th><th class="r">Your balance</th><th class="r">You'd get</th></tr></thead>`;
+  const tb = el("tbody");
+  if (!pl.srcs.length){ const tr = el("tr"); tr.innerHTML = `<td colspan="4" class="muted">None of the cards here transfer to this programme.</td>`; tb.append(tr); }
+  pl.srcs.forEach(s => {
+    const tr = el("tr");
+    tr.append(el("td", "", s.prog.bank.replace(" Bank", "") + " " + s.prog.card + (s.grp ? " (Group " + s.grp + ")" : "")));
+    tr.append(el("td", "r num", ratioTxt(s.ratio)));
+    tr.append(el("td", "r num", fmt(s.bal)));
+    tr.append(el("td", "r num", fmt(s.pts) + (s.usable < s.bal ? "*" : "")));
+    tb.append(tr);
+  });
+  t.append(tb); const tw2 = el("div", "tbl-wrap"); tw2.append(t); tw.append(tw2);
+  if (pl.srcs.some(s => s.usable < s.bal)) tw.append(el("div", "capnote", "* Limited by the card's yearly transfer cap for this group."));
+  body.append(tw);
+
+  if (g){
+    const sp = el("div"); sp.append(el("h4", "", P.k === "air" ? "Where it can take you" : "Where you can stay"));
+    const st = el("table");
+    st.innerHTML = `<thead><tr><th>${P.k === "air" ? "To" : "Hotel"}</th>${P.k === "air" ? "<th>From</th>" : ""}<th>Cabin</th><th class="r">${P.k === "air" ? "Miles one-way" : "Points / night"}</th><th class="r">Your card pts</th><th>You can book</th></tr></thead>`;
+    const sb = el("tbody");
+    g.spots.forEach(s => {
+      const tr = el("tr");
+      const to = el("td"); to.append(el("div", "", s.to)); if (s.note) to.append(el("div", "small muted", s.note)); to.style.whiteSpace = "normal"; to.style.minWidth = "180px";
+      tr.append(to);
+      if (P.k === "air") tr.append(el("td", "", s.from || ""));
+      tr.append(el("td", "", s.cab === "Hotel" ? "Room" : s.cab));
+      tr.append(el("td", "r num", s.m ? fmt(s.m) : "Varies"));
+      const best = pl.bestRatio;
+      tr.append(el("td", "r num", s.m && best ? fmt(Math.ceil(s.m / best.ratio)) + " " + best.prog.card : "—"));
+      const c = el("td");
+      if (s.m){ const n = Math.floor(pl.total / s.m); c.append(el("span", "pill " + (n ? "ok" : "no"), n ? n + "×" : "Not yet")); }
+      else c.textContent = "Check site";
+      tr.append(c); sb.append(tr);
+    });
+    st.append(sb); const sw = el("div", "tbl-wrap"); sw.append(st); sp.append(sw);
+    body.append(sp);
+
+    const steps = el("div"); steps.append(el("h4", "", "How to book"));
+    const ol = el("ol"); g.steps.forEach(s => ol.append(el("li", "", s))); steps.append(ol); body.append(steps);
+    if (g.watch && g.watch.length){
+      const w = el("div"); w.append(el("h4", "", "Watch out for"));
+      const ul = el("ul"); g.watch.forEach(s => ul.append(el("li", "", s))); w.append(ul); body.append(w);
+    }
+    body.append(el("p", "small muted", "Prices are the lowest one-way award prices seen in 2026; seats at that price are limited and taxes are extra. Find the seat first, then transfer." + (g.src ? " Source: " + g.src + "." : "")));
+  }
+  if (typeof dlg.showModal === "function") dlg.showModal(); else dlg.setAttribute("open", "");
+  body.scrollTop = 0;
 }
 
 function renderMatrix(){
@@ -401,7 +741,7 @@ function renderMatrix(){
       if (rates.every(x => x == null)) return;
       const hi = Math.max(...rates.filter(x => x != null));
       const tr = document.createElement("tr");
-      const td0 = document.createElement("td"); td0.textContent = PARTNERS[p].n; tr.append(td0);
+      const td0 = document.createElement("td"); td0.append(plink(p)); tr.append(td0);
       rates.forEach(r => {
         const td = document.createElement("td"); td.className = "r num";
         if (r == null){ td.textContent = "—"; td.classList.add("na"); }

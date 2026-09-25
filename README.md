@@ -1,6 +1,6 @@
 # Points Desk
 
-Credit card reward points calculator for Indian cards. Enter your points balance and see every transfer partner ranked by ₹ value, plus which card gives the most for each partner.
+Credit card reward points calculator for Indian cards. Enter your points balance and see every transfer partner ranked by ₹ value, which card gives the most for each partner, and where the points can take you (award flights from India and hotel nights), with a how-to-book guide for each of the 31 partners.
 
 **Live:** https://pratikgit0227.github.io/points-desk/
 
