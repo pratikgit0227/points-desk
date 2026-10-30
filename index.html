@@ -153,6 +153,27 @@ button.pl:hover{color:var(--accent);text-decoration-color:var(--accent)}
 .pill.no{background:var(--sunk);color:var(--ink-3)}
 .pill.cab{background:var(--accent-soft);color:var(--accent)}
 
+/* booking finder */
+.finder{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.f-in{display:grid;grid-template-columns:2fr 1fr;gap:12px}
+@media (max-width:560px){.f-in{grid-template-columns:1fr}}
+.f-in label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+.f-chips{display:flex;gap:6px;flex-wrap:wrap}
+.f-chips .chip{padding:5px 12px;font-size:13px}
+.f-win{display:grid;grid-template-columns:minmax(200px,300px) 1fr;gap:18px;align-items:center;background:var(--brass-soft);border-radius:12px;padding:16px}
+@media (max-width:640px){.f-win{grid-template-columns:1fr}}
+.f-win .tag{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);font-weight:700}
+.f-win .big{font-family:var(--mono);font-size:28px;font-weight:500}
+.f-win p{margin:4px 0 0}
+.f-list{display:flex;flex-direction:column;gap:8px}
+.f-row{display:grid;grid-template-columns:96px 1fr auto;gap:12px;align-items:center;padding:8px 10px;background:var(--sunk);border-radius:10px}
+.f-row .val{font-family:var(--mono);text-align:right}
+.f-row .via{font-size:12.5px;color:var(--ink-2)}
+.f-row .pct{font-size:12px;color:var(--ink-3)}
+.cardart{display:block;width:100%;height:auto;border-radius:8%/12%;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.f-cb{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.f-cb label{max-width:200px}
+
 /* guide dialog */
 dialog#guide{border:1px solid var(--line);border-radius:14px;padding:0;background:var(--surface);color:var(--ink);width:min(760px,calc(100vw - 32px));max-height:calc(100vh - 48px)}
 dialog#guide::backdrop{background:rgba(10,16,20,.5)}
@@ -180,6 +201,23 @@ dialog#guide::backdrop{background:rgba(10,16,20,.5)}
       <div class="small muted" id="totalNote"></div>
     </div>
   </header>
+
+  <section class="finder" aria-labelledby="findH">
+    <div>
+      <h2 id="findH">Which card for this booking?</h2>
+      <p class="muted small" style="margin:4px 0 0">A client says "I'm booking an IndiGo ticket, which card, cashback or points?" Type what they're buying and the amount. Card pictures are illustrations, not the banks' artwork.</p>
+    </div>
+    <div class="f-in">
+      <label>What are they buying?<input type="text" id="fQ" placeholder="indigo, air india, hotel…" autocomplete="off"></label>
+      <label>Ticket amount (₹)<input type="number" id="fAmt" min="0" step="500" inputmode="numeric"></label>
+    </div>
+    <div class="f-chips" id="fChips"></div>
+    <div class="f-cb">
+      <label>Own cashback card (optional)<input type="text" id="fCbName" placeholder="e.g. SBI Cashback"></label>
+      <label>Cashback on this booking (%)<input type="number" id="fCbPct" min="0" max="30" step="0.5" placeholder="0"></label>
+    </div>
+    <div id="fOut" aria-live="polite"></div>
+  </section>
 
   <section class="sync" aria-labelledby="syncH">
     <div class="sync-row">
@@ -334,8 +372,8 @@ const PROGRAMS = [
 const CARD_INFO = {
   axis_atlas:{status:"Closed to new applicants (2026)", fee:5900, earn:{travel:5, other:2}},
   axis_magnus_burgundy:{status:"Needs an Axis Burgundy relationship", fee:35400},
-  axis_magnus:{status:"Open", fee:14750},
-  hdfc_infinia:{status:"Mostly by invitation", fee:14750, waive:1000000},
+  axis_magnus:{status:"Open", fee:14750, earn:{travel:6, other:6}, est:true},
+  hdfc_infinia:{status:"Mostly by invitation", fee:14750, waive:1000000, earn:{travel:3.33, other:3.33}, est:true},
   hdfc_regalia_gold:{status:"Open", fee:2950, waive:400000, earn:{travel:2.67, other:2.67}, pick:true,
     why:"Lowest fee of the transfer cards, waived at ₹4L a year. Transfers are 2:1 or 3:1, so points are best used on SmartBuy."},
   amex_mr:{status:"Open (Platinum Travel)", fee:5900, earn:{travel:2, other:2}, bonus:[{at:400000, pts:10000}], pick:true,
@@ -655,7 +693,131 @@ function render(){
   renderMatrix();
   renderTrips();
   renderPick();
+  renderFinder();
 }
+
+// ---------- Booking finder ----------
+const MERCH = [
+  {id:"indigo", n:"IndiGo", kw:"indigo 6e interglobe flight ticket", p:"indigo"},
+  {id:"airindia", n:"Air India", kw:"air india express flight ticket", p:"airindia"},
+  {id:"spicejet", n:"SpiceJet", kw:"spicejet flight ticket", p:"spicejet"},
+  {id:"akasa", n:"Akasa Air", kw:"akasa flight ticket"},
+  {id:"sq", n:"Singapore Airlines", kw:"singapore airlines krisflyer flight ticket", p:"krisflyer"},
+  {id:"qatar", n:"Qatar Airways", kw:"qatar airways flight ticket", p:"qatar"},
+  {id:"ba", n:"British Airways", kw:"british airways flight ticket", p:"ba"},
+  {id:"jal", n:"Japan Airlines", kw:"jal japan airlines flight ticket", p:"jal"},
+  {id:"anyair", n:"Any other airline", kw:"airline flight ticket international domestic"},
+  {id:"marriott", n:"Marriott hotel", kw:"marriott hotel stay", p:"marriott"},
+  {id:"hilton", n:"Hilton hotel", kw:"hilton hotel stay", p:"hilton"},
+  {id:"hotel", n:"Any other hotel", kw:"hotel stay booking"}
+];
+const ART = {
+  axis_atlas:["#1b2a49","#c9a86a"], axis_magnus_burgundy:["#5a0f26","#d6b27a"], axis_magnus:["#3b1020","#c9a86a"],
+  hdfc_infinia:["#22262b","#9aa3ad"], hdfc_regalia_gold:["#7a5a1c","#f0cf7a"], amex_mr:["#9ea7b3","#f2f4f7"],
+  hsbc_travelone:["#9b1c1c","#2b2b2b"], axis_horizon:["#0d5c63","#7fd1c8"], scapia:["#5b3bb5","#b79bff"]
+};
+function cardArt(key, label, bank){
+  const [a, b] = ART[key] || ["#334","#99a"];
+  const dark = key === "amex_mr";
+  const ink = dark ? "#222" : "#fff";
+  const id = "g" + key + Math.random().toString(36).slice(2, 6);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  return `<svg class="cardart" viewBox="0 0 320 202" role="img" aria-label="${esc(bank + " " + label)} card illustration">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
+    <rect width="320" height="202" rx="16" fill="url(#${id})"/>
+    <circle cx="270" cy="30" r="90" fill="#fff" opacity=".07"/>
+    <rect x="24" y="64" width="42" height="32" rx="6" fill="#e6c97a" opacity=".92"/>
+    <path d="M24 80h42M45 64v32" stroke="#a88a3a" stroke-width="1.5" opacity=".7"/>
+    <text x="24" y="38" font-size="15" font-weight="700" fill="${ink}" font-family="sans-serif">${esc(bank)}</text>
+    <text x="24" y="168" font-size="19" font-weight="700" fill="${ink}" font-family="sans-serif">${esc(label.length > 24 ? label.slice(0, 23) + "…" : label)}</text>
+    <text x="24" y="188" font-size="11" fill="${ink}" opacity=".75" font-family="monospace">•••• •••• •••• ••••</text>
+    <circle cx="276" cy="176" r="14" fill="#fff" opacity=".35"/><circle cx="292" cy="176" r="14" fill="#fff" opacity=".2"/>
+  </svg>`;
+}
+const fState = Object.assign({q:"indigo", mid:"indigo", amt:6000, cbName:"", cbPct:0}, LS.get("pd_find", {}));
+function matchMerch(q){
+  const t = q.toLowerCase().split(/\s+/).filter(Boolean);
+  return !t.length ? MERCH : MERCH.filter(m => t.every(w => (m.n + " " + m.kw).toLowerCase().includes(w)));
+}
+function renderFinder(){
+  const q = $("fQ"), out = $("fOut"), chips = $("fChips");
+  if (document.activeElement !== q) q.value = fState.q;
+  if (document.activeElement !== $("fAmt")) $("fAmt").value = fState.amt || "";
+  if (document.activeElement !== $("fCbName")) $("fCbName").value = fState.cbName;
+  if (document.activeElement !== $("fCbPct")) $("fCbPct").value = fState.cbPct || "";
+  const hits = matchMerch(fState.q);
+  chips.textContent = "";
+  hits.forEach(m => {
+    const b = el("button", "chip", m.n); b.type = "button"; b.setAttribute("aria-pressed", String(m.id === fState.mid));
+    b.addEventListener("click", () => { fState.mid = m.id; fState.q = m.n; LS.set("pd_find", fState); renderFinder(); });
+    chips.append(b);
+  });
+  if (!hits.length) chips.append(el("span", "small muted", "No match. Pick \"Any other airline\" or \"Any other hotel\"."));
+  if (hits.length && !hits.some(m => m.id === fState.mid)) fState.mid = hits[0].id;
+  const m = MERCH.find(x => x.id === fState.mid) || MERCH[0];
+  const amt = fState.amt;
+  out.textContent = "";
+  if (!amt){ out.append(el("p", "small muted", "Enter the ticket amount to see the winner.")); return; }
+  const isAir = !/hotel/.test(m.id) && !["marriott","hilton"].includes(m.id);
+  const rows = [];
+  PROGRAMS.forEach(prog => {
+    const ci = CARD_INFO[prog.key];
+    if (!ci || !ci.earn) return;
+    const pts = amt / 100 * ci.earn.travel;
+    const opts = [{kind:"cash", v: pts * prog.base.v, via:"Use the points as cash-style credit: " + prog.base.label}];
+    const want = m.p && prog.r[m.p];
+    if (want) opts.push({kind:"pts", v: pts * want[0] * val(m.p), via:"Transfer to " + PARTNERS[m.p].n + " (" + ratioTxt(want[0]) + ")"});
+    let bp = null;
+    for (const [p, [ratio]] of Object.entries(prog.r)){
+      if (PARTNERS[p].k !== (isAir ? "air" : "hotel")) continue;
+      const v = pts * ratio * val(p);
+      if (!bp || v > bp.v) bp = {kind:"pts", v, via:"Transfer to " + PARTNERS[p].n + " (" + ratioTxt(ratio) + ") for a trip later"};
+    }
+    opts.sort((x, y) => y.v - x.v);
+    rows.push({prog, ci, pts, best: opts[0], cash: opts.find(o => o.kind === "cash"), stretch: bp && bp.v > opts[0].v * 1.15 ? bp : null, name: ci.label || (prog.bank.replace(" Bank", "") + " " + prog.card)});
+  });
+  if (fState.cbPct > 0) rows.push({own:true, name: fState.cbName || "Your cashback card", pts:0, best:{kind:"cashback", v: amt * fState.cbPct / 100, via: fState.cbPct + "% back, paid as cash"}, cash:null});
+  rows.sort((a, b) => b.best.v - a.best.v);
+  const w = rows[0];
+  const note = (r) => (r.ci && r.ci.est ? " Earn rate is the base retail rate, not checked for this merchant." : "") ;
+  const win = el("div", "f-win");
+  const artBox = el("div");
+  if (w.own) artBox.append(el("div", "big", "Cashback"));
+  else artBox.innerHTML = cardArt(w.prog.key, w.prog.card, w.prog.bank.replace(" Bank", ""));
+  const txt = el("div");
+  txt.append(el("div", "tag", "Pay " + m.n + " with"));
+  txt.append(el("h3", "", w.name));
+  txt.append(el("div", "big", inr(w.best.v) + " back"));
+  txt.append(el("p", "small", `${(w.best.v / amt * 100).toFixed(1)}% of ${inr(amt)}. ${w.own ? "Cash lands in the account." : fmt(w.pts) + " points earned. " + w.best.via + "."}`));
+  if (w.stretch) txt.append(el("p", "small muted", `Stretch: ${inr(w.stretch.v)} if the points are saved for another trip. ${w.stretch.via.replace(" for a trip later", "")}.`));
+  const pointsBest = rows.find(r => !r.own);
+  const cb = rows.find(r => r.own);
+  let verdict;
+  if (cb && pointsBest){
+    verdict = cb.best.v >= pointsBest.best.v
+      ? `Cashback wins here: ${inr(cb.best.v)} against ${inr(pointsBest.best.v)} from the best points card. Cash is also certain, points are only worth that if the client redeems them well.`
+      : `Points win: ${inr(pointsBest.best.v)} on ${pointsBest.name} against ${inr(cb.best.v)} cashback.`;
+  } else if (pointsBest){
+    verdict = `Points or cashback? As plain cash, ${pointsBest.name} gives ${inr(pointsBest.cash.v)} on this booking. Using the points well gives ${inr(pointsBest.best.v)}. Add the client's cashback card above to compare directly.`;
+  }
+  if (verdict) txt.append(el("p", "small", verdict));
+  if (!w.own && w.ci) { const n = note(w); if (n) txt.append(el("p", "small muted", n.trim())); if (w.ci.status && !/^open/i.test(w.ci.status)) txt.append(el("p", "small muted", "Card status: " + w.ci.status + ".")); }
+  win.append(artBox, txt); out.append(win);
+  const list = el("div", "f-list");
+  rows.slice(1).forEach(r => {
+    const row = el("div", "f-row");
+    const a = el("div"); a.innerHTML = r.own ? "" : cardArt(r.prog.key, r.prog.card, r.prog.bank.replace(" Bank", ""));
+    const mid = el("div"); mid.append(el("div", "", r.name)); mid.append(el("div", "via", r.best.via + (r.stretch ? " · up to " + inr(r.stretch.v) + " via " + r.stretch.via.replace(/^Transfer to | for a trip later|\s\(.*$/g, "") : "") + (r.ci && r.ci.est ? " · base rate" : "")));
+    const v = el("div", "val", inr(r.best.v)); v.append(el("div", "pct", (r.best.v / amt * 100).toFixed(1) + "%"));
+    row.append(a, mid, v); list.append(row);
+  });
+  out.append(list);
+  out.append(el("p", "small muted", "Assumes the booking is made on the airline or hotel's own site and counts as travel spend. Portal bookings (SmartBuy, Travel EDGE) earn differently, and some cards exclude certain merchants, so check the card's terms. Axis Atlas is closed to new applicants. Value per point uses your editable partner values below."));
+}
+$("fQ").addEventListener("input", () => { fState.q = $("fQ").value; const h = matchMerch(fState.q); if (h.length) fState.mid = h[0].id; LS.set("pd_find", fState); renderFinder(); });
+$("fAmt").addEventListener("input", () => { fState.amt = Math.max(0, +$("fAmt").value || 0); LS.set("pd_find", fState); renderFinder(); });
+$("fCbName").addEventListener("input", () => { fState.cbName = $("fCbName").value; LS.set("pd_find", fState); renderFinder(); });
+$("fCbPct").addEventListener("input", () => { fState.cbPct = Math.max(0, +$("fCbPct").value || 0); LS.set("pd_find", fState); renderFinder(); });
 
 // ---------- Card picker ----------
 const pickState = LS.get("pd_pick", {spend:400000, travel:60000});
