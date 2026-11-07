@@ -28,7 +28,8 @@ src/
     api/
       extract/route.ts    POST { text } → balances via AI (optional, off unless ENABLE_AI_EXTRACT=1)
       data/route.ts       GET  all partner, card and guide data as JSON (static)
-      health/route.ts     GET  liveness + whether the AI reader is on
+      fares/route.ts      GET  cheapest recent fares for a route/date (Travelpayouts, optional)
+      health/route.ts     GET  liveness + which optional features are on
   components/             one component per section, plus store.tsx (app state)
   lib/
     data/                 partners, cards & ratios, guides, merchants, fares  ← edit data here
@@ -66,6 +67,8 @@ Everything works without any key. The app is free to run.
 
 1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new). The framework (Next.js) is detected automatically; no build settings needed.
 2. Click Deploy. Nothing else is needed: the app runs free on the Hobby plan.
+
+Optional cheapest-fare lookup (free): sign up at [Travelpayouts](https://www.travelpayouts.com/), copy the API token from your profile, and add it as `TRAVELPAYOUTS_TOKEN` in Vercel → Settings → Environment Variables (add your partner ID as `TRAVELPAYOUTS_MARKER` to earn commission on bookings), then redeploy. Without it the destination search shows links to fare sites instead.
 
 Optional AI reader (for messages the pattern reader misses): enable AI Gateway on the project, set `ENABLE_AI_EXTRACT=1` (and optionally `EXTRACT_MODEL`), and redeploy. AI Gateway usage is billed, so leave it off to stay free. If you turn it on, add a Vercel Firewall rate-limit rule on `/api/extract`; the built-in limit (10 a minute per IP) only covers one running instance.
 
