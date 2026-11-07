@@ -15,7 +15,9 @@ export const PARTNERS = {
   finnair:{n:"Finnair Plus Avios",k:"air",v:1.1}, vietnam:{n:"Vietnam LotusMiles",k:"air",v:0.8},
   virgin:{n:"Virgin Atlantic Flying Club",k:"air",v:1.1}, lifemiles:{n:"Avianca LifeMiles",k:"air",v:1.1},
   milesmore:{n:"Lufthansa Miles & More",k:"air",v:0.9}, airasia:{n:"AirAsia Rewards",k:"air",v:0.6},
-  spicejet:{n:"SpiceJet SpiceClub",k:"air",v:1.0}, indigo:{n:"IndiGo BluChip",k:"air",v:1.0},
+  // SpiceClub: SpiceJet says 1 point = ₹0.50. BluChip: no official rate; redemptions give about ₹0.40
+  // (CardTrail Mar 2026, CardAdvisor Oct 2026). The old "₹1 per point" was IndiGo's retired 6E Rewards.
+  spicejet:{n:"SpiceJet SpiceClub",k:"air",v:0.5}, indigo:{n:"IndiGo BluChip",k:"air",v:0.4},
   accor:{n:"Accor ALL",k:"hotel",v:2.2}, hilton:{n:"Hilton Honors",k:"hotel",v:0.35},
   ihg:{n:"IHG One Rewards",k:"hotel",v:0.45}, marriott:{n:"Marriott Bonvoy",k:"hotel",v:0.7},
   wyndham:{n:"Wyndham Rewards",k:"hotel",v:0.6}, radisson:{n:"Radisson Rewards",k:"hotel",v:0.3},
