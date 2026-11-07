@@ -68,3 +68,20 @@ describe("merchantFor", () => {
     expect(merchantFor({ merchant: "indigo" }).id).toBe("indigo");
   });
 });
+
+describe("live price links", () => {
+  it("builds dated cash-fare searches from the chosen city", async () => {
+    const { cashFareLinks } = await import("./trips");
+    const links = cashFareLinks("HYD", "KWI", "2027-01-15", "Business");
+    expect(links.map((l) => l.label)).toEqual(["Google Flights", "Skyscanner", "MakeMyTrip"]);
+    expect(links[1].href).toContain("/hyd/kwi/270115/");
+    expect(links[1].href).toContain("cabinclass=business");
+    expect(links[2].href).toContain("itinerary=HYD-KWI-15/01/2027");
+  });
+  it("links award searches for the programme", async () => {
+    const { awardLinks } = await import("./trips");
+    const links = awardLinks("qatar", "DEL", "KWI", "2027-01-15");
+    expect(links[0].href).toBe("https://seats.aero/search?origins=DEL&destinations=KWI&date=2027-01-15");
+    expect(links[1].href).toContain("qatarairways.com");
+  });
+});

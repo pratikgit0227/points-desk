@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
-import { beatsValue, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type RoutePlan } from "@/lib/calc";
-import { DESTINATIONS, PARTNERS, type Cabin } from "@/lib/data";
+import { useMemo, useSyncExternalStore } from "react";
+import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
+import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
 import { PartnerLink } from "./PartnerLink";
 import { useStore } from "./store";
@@ -11,6 +11,24 @@ const CABINS: { c: Cabin; label: string }[] = [
   { c: "eco", label: "Economy" },
   { c: "biz", label: "Business" },
 ];
+
+/** Today + 60 days on the client; empty during the server render (dates can't be prerendered). */
+const noop = () => () => {};
+function useDefaultDate() {
+  return useSyncExternalStore(noop, () => defaultTripDate(), () => "");
+}
+
+function Links({ links }: { links: FareLink[] }) {
+  return (
+    <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "2px 10px" }}>
+      {links.map((l) => (
+        <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", fontWeight: 600 }}>
+          {l.label} ↗
+        </a>
+      ))}
+    </span>
+  );
+}
 
 function cardLabel(plan: RoutePlan) {
   return plan.best ? shortBank(plan.best.prog.bank) + " " + plan.best.prog.card : "";
@@ -30,6 +48,10 @@ export function DestinationFinder() {
     [airline, fare, values],
   );
   const top = plans[0];
+  const fallbackDate = useDefaultDate();
+  const date = trip.date || fallbackDate;
+  const today = fallbackDate ? new Date().toISOString().slice(0, 10) : undefined;
+  const cabinName = trip.cabin === "biz" ? "Business" : "Economy";
 
   return (
     <section className="finder" aria-labelledby="destH">
@@ -75,6 +97,31 @@ export function DestinationFinder() {
           ))}
         </div>
       </div>
+
+      <div className="live-prices" style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", alignItems: "center", padding: "10px 12px", borderRadius: 10, background: "var(--accent-soft)" }}>
+        <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          From
+          <select value={trip.from} onChange={(e) => setTrip({ from: e.target.value })} style={{ padding: "5px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--surface)" }}>
+            {ORIGINS.map((o) => (
+              <option key={o.code} value={o.code}>
+                {o.name} ({o.code})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Date
+          <input type="date" value={date} min={today} onChange={(e) => setTrip({ date: e.target.value })} style={{ width: "auto", padding: "5px 8px" }} />
+        </label>
+        {date && (
+          <span className="small">
+            <b>Live cash fares:</b> <Links links={cashFareLinks(trip.from, dest.code, date, cabinName)} />
+          </span>
+        )}
+      </div>
+      <p className="small muted" style={{ margin: "-6px 0 0" }}>
+        Open a fare site, then type the price you see into &quot;One-way cash fare&quot; above: the ₹-per-point figures update to the real fare. Award seats can be checked per route in the table.
+      </p>
 
       {dest.note && (
         <p className="small capnote" role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, background: "var(--brass-soft)", border: "1px solid var(--brass-line)" }}>
@@ -126,6 +173,7 @@ export function DestinationFinder() {
                 <th className="r">Card pts</th>
                 <th>You can book</th>
                 <th className="r">₹ / partner pt</th>
+                <th>Check seats</th>
               </tr>
             </thead>
             <tbody>
@@ -152,6 +200,9 @@ export function DestinationFinder() {
                   <td className="r num">{fmt(pl.cardPts)}</td>
                   <td>{pl.canBook ? <span className="pill ok">Yes</span> : <span className="pill no">Need {fmt(pl.short)}</span>}</td>
                   <td className="r num">{pl.r.pricing === "revenue" ? "—" : "₹" + pl.perPoint.toFixed(2)}</td>
+                  <td className="small" style={{ whiteSpace: "normal", minWidth: 120 }}>
+                    {date && <Links links={pl.r.pricing === "revenue" ? cashFareLinks(trip.from, dest.code, date, cabinName).slice(0, 1) : awardLinks(pl.p, trip.from, dest.code, date)} />}
+                  </td>
                 </tr>
               ))}
             </tbody>

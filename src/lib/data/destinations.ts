@@ -166,3 +166,19 @@ export const DESTINATIONS: Destination[] = [
     fare: { eco: 18000, biz: 60000 }, checked: CHECKED, src: SRC,
   },
 ];
+
+/** Indian departure airports for the live fare and award-seat links. */
+export const ORIGINS: { code: string; name: string }[] = [
+  { code: "DEL", name: "Delhi" },
+  { code: "BOM", name: "Mumbai" },
+  { code: "BLR", name: "Bengaluru" },
+  { code: "HYD", name: "Hyderabad" },
+  { code: "MAA", name: "Chennai" },
+  { code: "COK", name: "Kochi" },
+  { code: "CCJ", name: "Kozhikode" },
+  { code: "TRV", name: "Thiruvananthapuram" },
+  { code: "CCU", name: "Kolkata" },
+  { code: "AMD", name: "Ahmedabad" },
+  { code: "LKO", name: "Lucknow" },
+  { code: "GOI", name: "Goa" },
+];
