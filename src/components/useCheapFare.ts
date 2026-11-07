@@ -10,6 +10,7 @@ export interface CheapFare {
   transfers: number;
   duration: number | null;
   link: string;
+  destinationAirport: string;
 }
 
 export type FareLookup =

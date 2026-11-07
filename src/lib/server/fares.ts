@@ -21,6 +21,8 @@ export interface CheapFare {
   duration: number | null;
   /** Aviasales search page for this fare */
   link: string;
+  /** Airport the fare actually lands at (the API may return a nearby one, e.g. SHJ for Dubai) */
+  destinationAirport: string;
 }
 
 const ticket = z
@@ -33,6 +35,7 @@ const ticket = z
     duration: z.coerce.number().optional(),
     duration_to: z.coerce.number().optional(),
     link: z.string().optional().default(""),
+    destination_airport: z.string().optional(),
   })
   .passthrough();
 
@@ -45,6 +48,11 @@ function bookingLink(path: string, from: string, to: string, date: string): stri
   return base + (base.includes("?") ? "&" : "?") + "marker=" + encodeURIComponent(marker);
 }
 
+/** "/search/DEL0912SHJ1?..." → "SHJ" */
+function landingFromLink(link: string): string {
+  return link.match(/search\/[A-Z]{3}\d{4}([A-Z]{3})/)?.[1] ?? "";
+}
+
 async function query(from: string, to: string, departure: string): Promise<CheapFare[]> {
   const params = new URLSearchParams({
     origin: from,
@@ -52,7 +60,7 @@ async function query(from: string, to: string, departure: string): Promise<Cheap
     departure_at: departure,
     one_way: "true",
     sorting: "price",
-    limit: "5",
+    limit: "10",
     currency: "inr",
     cy: "inr",
     market: "in",
@@ -76,9 +84,11 @@ async function query(from: string, to: string, departure: string): Promise<Cheap
         transfers: t.transfers,
         duration: t.duration_to ?? t.duration ?? null,
         link: bookingLink(t.link, from, to, /^\d{4}-\d{2}-\d{2}/.test(t.departure_at) ? t.departure_at.slice(0, 10) : departure.length === 10 ? departure : departure + "-01"),
+        destinationAirport: (t.destination_airport || landingFromLink(t.link) || to).toUpperCase(),
       };
     })
-    .sort((a, b) => a.price - b.price);
+    // Fares into the exact airport first, then cheapest
+    .sort((a, b) => Number(b.destinationAirport === to) - Number(a.destinationAirport === to) || a.price - b.price);
 }
 
 /**

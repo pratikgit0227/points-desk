@@ -52,3 +52,21 @@ describe("cheapestFares", () => {
     await expect(cheapestFares("DEL", "KWI", "2027-01-15")).rejects.toThrow("401");
   });
 });
+
+describe("nearby airports", () => {
+  it("puts fares into the exact airport first and labels the others", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        api([
+          { price: 16035, airline: "AI", departure_at: "2026-12-09", link: "/search/DEL0912SHJ1?t=x" },
+          { price: 18500, airline: "6E", departure_at: "2026-12-09", link: "/search/DEL0912DXB1?t=y", destination_airport: "DXB" },
+        ]),
+      ),
+    );
+    const { cheapestFares } = await load();
+    const r = await cheapestFares("DEL", "DXB", "2026-12-09");
+    expect(r.fares[0]).toMatchObject({ price: 18500, destinationAirport: "DXB" });
+    expect(r.fares[1].destinationAirport).toBe("SHJ");
+  });
+});
