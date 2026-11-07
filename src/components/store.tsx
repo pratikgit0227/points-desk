@@ -22,6 +22,10 @@ export interface TripState {
   fare: number;
   /** Index of the nonstop airline chosen for paying cash */
   airline: number;
+  /** Departure airport code for the live price links */
+  from: string;
+  /** Travel date (YYYY-MM-DD); empty means 60 days out */
+  date: string;
 }
 
 export interface PickState {
@@ -37,7 +41,7 @@ const ALL: Filter = "all";
 const NO_FOUND: FoundBalance[] = [];
 const FINDER: FinderState = { q: "indigo", mid: "indigo", amt: 6000, cbName: "", cbPct: 0 };
 const PICK: PickState = { spend: 400000, travel: 60000 };
-const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline: 0 };
+const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline: 0, from: "DEL", date: "" };
 const NO_CASH: CashPrices = {};
 
 interface Store extends Ctx {

@@ -1,4 +1,7 @@
 import type { Destination } from "./types";
+import { AMERICAS_OCEANIA } from "./destinations-americas-oceania";
+import { ASIA } from "./destinations-asia";
+import { EUROPE_AFRICA } from "./destinations-europe-africa";
 
 /**
  * Destinations for the "Travelling somewhere?" search: every transfer partner
@@ -23,7 +26,7 @@ const QATAR_VIA = "Via Doha. Estimated from India–Doha–Dubai pricing. Avios 
 const ETIHAD_VIA = "Via Abu Dhabi. Price moves with the date; business carries US$250–500 surcharges.";
 const BLUCHIP = "BluChip points pay the fare; value per point is set in the partner values list.";
 
-export const DESTINATIONS: Destination[] = [
+const GULF: Destination[] = [
   {
     id: "kwi", name: "Kuwait", country: "Kuwait", code: "KWI", kw: "kuwait city kwi gulf middle east",
     nonstop: [
@@ -165,4 +168,23 @@ export const DESTINATIONS: Destination[] = [
     ],
     fare: { eco: 18000, biz: 60000 }, checked: CHECKED, src: SRC,
   },
+];
+
+/** Every destination in the search, Gulf first. */
+export const DESTINATIONS: Destination[] = [...GULF, ...ASIA, ...EUROPE_AFRICA, ...AMERICAS_OCEANIA];
+
+/** Indian departure airports for the live fare and award-seat links. */
+export const ORIGINS: { code: string; name: string }[] = [
+  { code: "DEL", name: "Delhi" },
+  { code: "BOM", name: "Mumbai" },
+  { code: "BLR", name: "Bengaluru" },
+  { code: "HYD", name: "Hyderabad" },
+  { code: "MAA", name: "Chennai" },
+  { code: "COK", name: "Kochi" },
+  { code: "CCJ", name: "Kozhikode" },
+  { code: "TRV", name: "Thiruvananthapuram" },
+  { code: "CCU", name: "Kolkata" },
+  { code: "AMD", name: "Ahmedabad" },
+  { code: "LKO", name: "Lucknow" },
+  { code: "GOI", name: "Goa" },
 ];

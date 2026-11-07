@@ -70,24 +70,45 @@ function addDays(iso: string, days: number) {
   return new Date(new Date(iso).getTime() + days * 864e5).toISOString().slice(0, 10);
 }
 
+const CABIN_TXT: Record<Cabin, string> = { first: "first class ", business: "business class ", premiumeconomy: "premium economy ", economy: "" };
+const MMT_CABIN: Record<Cabin, string> = { first: "F", business: "B", premiumeconomy: "PE", economy: "E" };
+
+/**
+ * Live cash-fare searches for a one-way flight on a date. `from` / `to` are
+ * airport codes when known (for Skyscanner and MakeMyTrip), else city names.
+ */
+export function cashFareLinks(from: string, to: string, date: string, cabin: string, haveCodes = true): FareLink[] {
+  const cab = cabinOf(cabin);
+  const [y, m, d] = date.split("-");
+  const out: FareLink[] = [
+    { label: "Google Flights", href: "https://www.google.com/travel/flights?q=" + encodeURIComponent(`one way ${CABIN_TXT[cab]}flights from ${from} to ${to} on ${date}`) },
+  ];
+  if (haveCodes) {
+    out.push({ label: "Skyscanner", href: `https://www.skyscanner.co.in/transport/flights/${from.toLowerCase()}/${to.toLowerCase()}/${y.slice(2)}${m}${d}/?adultsv2=1&cabinclass=${cab}&rtn=0` });
+    out.push({ label: "MakeMyTrip", href: `https://www.makemytrip.com/flight/search?itinerary=${from}-${to}-${d}/${m}/${y}&tripType=O&paxType=A-1_C-0_I-0&intl=true&cabinClass=${MMT_CABIN[cab]}` });
+  }
+  return out;
+}
+
+/** Award-seat searches for a programme on a route: seats.aero (if it covers the programme) and the programme's site. */
+export function awardLinks(p: PartnerId, from: string, to: string, date: string): FareLink[] {
+  const out: FareLink[] = [];
+  if (SEATS_AERO.includes(p)) out.push({ label: "seats.aero", href: `https://seats.aero/search?origins=${from}&destinations=${to}&date=${date}` });
+  const site = SITES[p];
+  if (site) out.push({ label: new URL(site).hostname.replace(/^www\./, ""), href: site });
+  return out;
+}
+
 /** Links to cash fares, award-seat search and the programme's site for one spot on a date. */
 export function fareLinks(p: PartnerId, i: number, s: Spot, date: string): FareLink[] {
   const out: FareLink[] = [];
   const air = PARTNERS[p].k === "air";
-  const [y, m, d] = date.split("-");
   if (air) {
     const c = CODES[p + "|" + i];
-    const cab = cabinOf(s.cab);
-    const cabTxt = { first: "first class ", business: "business class ", premiumeconomy: "premium economy ", economy: "" }[cab];
     const from = c ? c[0] : (s.from || "").split(/[\/,]| via /)[0].trim();
     const to = c ? c[1] : s.to.split(/[\/,(]| or |, then /)[0].replace(/^Anywhere in /, "").trim();
-    out.push({ label: "Google Flights", href: "https://www.google.com/travel/flights?q=" + encodeURIComponent(`one way ${cabTxt}flights from ${from} to ${to} on ${date}`) });
-    if (c) {
-      out.push({ label: "Skyscanner", href: `https://www.skyscanner.co.in/transport/flights/${c[0].toLowerCase()}/${c[1].toLowerCase()}/${y.slice(2)}${m}${d}/?adultsv2=1&cabinclass=${cab}&rtn=0` });
-      const mmtCab = { first: "F", business: "B", premiumeconomy: "PE", economy: "E" }[cab];
-      out.push({ label: "MakeMyTrip", href: `https://www.makemytrip.com/flight/search?itinerary=${c[0]}-${c[1]}-${d}/${m}/${y}&tripType=O&paxType=A-1_C-0_I-0&intl=true&cabinClass=${mmtCab}` });
-      if (SEATS_AERO.includes(p)) out.push({ label: "Award seats: seats.aero", href: `https://seats.aero/search?origins=${c[0]}&destinations=${c[1]}&date=${date}` });
-    }
+    out.push(...cashFareLinks(from, to, date, s.cab, Boolean(c)));
+    if (c && SEATS_AERO.includes(p)) out.push({ label: "Award seats: seats.aero", href: `https://seats.aero/search?origins=${c[0]}&destinations=${c[1]}&date=${date}` });
   } else {
     const name = s.to.split(/[\/,]/)[0].trim();
     const checkout = addDays(date, 1);
