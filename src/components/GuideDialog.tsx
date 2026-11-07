@@ -187,7 +187,7 @@ function Spots({ p, spots, total, best }: { p: PartnerId; spots: Spot[]; total: 
   );
 }
 
-const cashInput = { width: 96, fontFamily: "var(--mono)", padding: "4px 6px" } as const;
+const cashInput = { width: 96, padding: "4px 6px", fontVariantNumeric: "tabular-nums" } as const;
 
 function SpotRow({ p, i, s, date, total, best }: { p: PartnerId; i: number; s: Spot; date: string; total: number; best: { ratio: number; card: string } | null }) {
   const { cashPrices, setCashPrice, values, setValue } = useStore();
