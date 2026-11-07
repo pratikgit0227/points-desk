@@ -135,7 +135,7 @@ export function DestinationFinder() {
           </span>
         )}
       </div>
-      <CheapestFare lookup={found} cabin={trip.cabin} />
+      <CheapestFare lookup={found} cabin={trip.cabin} code={dest.code} />
 
       {dest.note && (
         <p className="small capnote" role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, background: "var(--brass-soft)", border: "1px solid var(--brass-line)" }}>
@@ -261,7 +261,7 @@ export function DestinationFinder() {
   );
 }
 
-function CheapestFare({ lookup, cabin }: { lookup: ReturnType<typeof useCheapFare>; cabin: Cabin }) {
+function CheapestFare({ lookup, cabin, code }: { lookup: ReturnType<typeof useCheapFare>; cabin: Cabin; code: string }) {
   const note = (
     <p className="small muted" style={{ margin: "-6px 0 0" }}>
       Open a fare site and type the price you see into &quot;One-way cash fare&quot;: the ₹-per-point figures update to that fare. Award seats can be checked per route in the table.
@@ -286,6 +286,11 @@ function CheapestFare({ lookup, cabin }: { lookup: ReturnType<typeof useCheapFar
           <b>Cheapest found: {inr(f.price)}</b>
           {lookup.month ? ` (best in the month, on ${when})` : ""}
         </div>
+        {f.destinationAirport && f.destinationAirport !== code && (
+          <div className="small capnote">
+            Lands at {f.destinationAirport}, not {code}: a nearby airport. Check the transfer before comparing.
+          </div>
+        )}
         <div className="via">
           {[f.airline && f.airline + (f.flightNumber ? " " + f.flightNumber : ""), f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : "nonstop", hrs].filter(Boolean).join(" · ")}
           {" · found by Aviasales searches in the last 2 days; the price can change. Used for the ₹-per-point maths below."}
