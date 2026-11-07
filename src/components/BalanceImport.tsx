@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FoundBalance } from "@/lib/calc";
 import { findProgram } from "@/lib/data";
 import { fmt } from "@/lib/format";
+import { parseBalances } from "@/lib/parse-balance";
 import { useStore } from "./store";
 
 /** Paste a statement email or SMS; the server reads the balances out of it with AI. */
@@ -20,6 +21,21 @@ export function BalanceImport() {
   async function read() {
     const t = text.trim();
     if (!t) return setStatus({ msg: "Paste some text first.", err: true });
+    const done = (list: FoundBalance[]) => {
+      addFound(list);
+      const n = list.length;
+      setStatus({ msg: `Found ${n} balance${n > 1 ? "s" : ""}. Apply below.` });
+    };
+    const notFound = {
+      msg: "No balance found in that text. Paste the line that names the card and its points balance, or type it into the card below.",
+      err: true,
+    };
+
+    // Free, in-browser reading first: the text doesn't leave the device.
+    const local = parseBalances(t);
+    if (local.length) return done(local);
+
+    // Optional AI fallback, only if it's switched on for this deployment.
     setBusy(true);
     setStatus({ msg: "Reading the pasted text…" });
     try {
@@ -29,10 +45,10 @@ export function BalanceImport() {
         body: JSON.stringify({ text: t }),
       });
       const data = (await res.json().catch(() => ({}))) as { balances?: FoundBalance[]; error?: string };
+      if (res.status === 501) return setStatus(notFound);
       if (!res.ok || !data.balances) throw new Error(data.error || "Reading the text failed. Try again.");
-      addFound(data.balances);
-      const n = data.balances.length;
-      setStatus(n ? { msg: `Found ${n} balance${n > 1 ? "s" : ""}. Apply below.` } : { msg: "No balance found in that text.", err: true });
+      if (data.balances.length) done(data.balances);
+      else setStatus(notFound);
     } catch (e) {
       setStatus({ msg: e instanceof Error ? e.message : "Reading the text failed. Try again.", err: true });
     } finally {
@@ -85,7 +101,7 @@ export function BalanceImport() {
         <summary>Paste an email or SMS</summary>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <label className="small muted" htmlFor="paste">
-            Paste text from a statement, email or SMS. It is sent to the server only to read the balance and isn&apos;t stored.
+            Paste text from a statement, email or SMS. It&apos;s read in your browser and isn&apos;t stored or sent anywhere.
           </label>
           <textarea id="paste" placeholder="e.g. Your EDGE Miles balance as on 20-Sep-2026 is 48,250" value={text} onChange={(e) => setText(e.target.value)} />
           <div>
