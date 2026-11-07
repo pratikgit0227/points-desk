@@ -7,14 +7,14 @@ Cards: Axis Atlas, Horizon, Magnus and Magnus for Burgundy (EDGE), HDFC Infinia 
 - Transfer ratios checked 25 Sep 2026, including Axis's 23 Sep 2026 changes
 - Axis annual Group A / Group B transfer caps are applied
 - ₹ value per partner point can be edited; balances and values are saved in the browser only
-- Paste a statement email or bank SMS and the balances are read out of it with AI
+- Paste a statement email or bank SMS and the balances are read out of it in the browser (free, nothing is sent anywhere)
 
 Check the current ratio on your bank's portal before transferring. Transfers can't be reversed.
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript), deployed on **Vercel**
-- **AI SDK 7** through the **Vercel AI Gateway** for reading balances from text
+- Pattern-matching reader for bank SMS/emails (`src/lib/parse-balance.ts`), with an optional AI fallback (AI SDK 7 + Vercel AI Gateway, off by default)
 - **Vitest** for the calculation tests
 
 ## Project layout
@@ -26,14 +26,15 @@ src/
     layout.tsx            fonts, metadata
     globals.css           all styles (light + dark)
     api/
-      extract/route.ts    POST { text } → balances read from an email/SMS (AI)
+      extract/route.ts    POST { text } → balances via AI (optional, off unless ENABLE_AI_EXTRACT=1)
       data/route.ts       GET  all partner, card and guide data as JSON (static)
-      health/route.ts     GET  liveness + whether AI is configured
+      health/route.ts     GET  liveness + whether the AI reader is on
   components/             one component per section, plus store.tsx (app state)
   lib/
     data/                 partners, cards & ratios, guides, merchants, fares  ← edit data here
     calc/                 all the maths, no UI; calc.test.ts covers it
     server/               AI extraction and rate limiting (server only)
+    parse-balance.ts      free in-browser balance reader (+ tests)
     persisted.ts          localStorage-backed state
 ```
 
@@ -53,24 +54,24 @@ Needs Node 22+.
 
 ```bash
 npm install
-cp .env.example .env.local   # add AI_GATEWAY_API_KEY to try the paste-to-read feature
+cp .env.example .env.local   # optional, only for the AI reader
 npm run dev                  # http://localhost:3000
 ```
 
 Scripts: `npm run build`, `npm test`, `npm run lint`, `npm run typecheck`, `npm run check` (all three checks).
 
-Everything except "read balance from text" works without a key.
+Everything works without any key. The app is free to run.
 
 ## Deploying to Vercel
 
 1. Import the GitHub repo at [vercel.com/new](https://vercel.com/new). The framework (Next.js) is detected automatically; no build settings needed.
-2. Enable **AI Gateway** for the project. Deployments authenticate to it automatically, so no API key is needed in production.
-3. Optional: set `EXTRACT_MODEL` to use a different model.
-4. Optional: add a Vercel Firewall rate-limit rule on `/api/extract`. The built-in limit (10 requests a minute per IP) only covers one running instance.
+2. Click Deploy. Nothing else is needed: the app runs free on the Hobby plan.
+
+Optional AI reader (for messages the pattern reader misses): enable AI Gateway on the project, set `ENABLE_AI_EXTRACT=1` (and optionally `EXTRACT_MODEL`), and redeploy. AI Gateway usage is billed, so leave it off to stay free. If you turn it on, add a Vercel Firewall rate-limit rule on `/api/extract`; the built-in limit (10 a minute per IP) only covers one running instance.
 
 Every push to a branch gets a preview URL; merging to `main` deploys to production. GitHub Actions (`.github/workflows/ci.yml`) runs lint, tests, build and typecheck on every PR.
 
 ## Not built yet
 
-- **Gmail scan.** The original page read balances from Gmail through Claude's connector. A standalone version needs Google sign-in with the `gmail.readonly` scope, which Google treats as restricted (app verification and a security assessment). Paste-to-read covers the same need for now.
+- **Gmail scan.** The original page read balances from Gmail through Claude's connector. A standalone version needs Google sign-in with the `gmail.readonly` scope, which Google treats as restricted (app verification and a security assessment). The free paste-to-read covers the same need for now.
 - **Accounts and sync.** Balances live in the browser. Saving them across devices needs sign-in and a database (e.g. Clerk + Neon from the Vercel Marketplace).

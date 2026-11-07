@@ -8,6 +8,12 @@ export const EXTRACT_MODEL = process.env.EXTRACT_MODEL || "anthropic/claude-haik
 
 export const MAX_TEXT_CHARS = 20000;
 
+/**
+ * AI reading is off unless ENABLE_AI_EXTRACT=1 is set, so the app costs
+ * nothing by default. The browser's pattern reader handles most messages.
+ */
+export const AI_ENABLED = process.env.ENABLE_AI_EXTRACT === "1";
+
 const balanceSchema = z.object({
   balances: z.array(
     z.object({

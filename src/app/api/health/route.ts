@@ -1,8 +1,8 @@
 import { connection } from "next/server";
+import { AI_ENABLED } from "@/lib/server/extract";
 
-/** Liveness check; also reports whether the AI endpoint is configured. */
+/** Liveness check; also reports whether the optional AI reader is switched on. */
 export async function GET() {
   await connection();
-  const aiConfigured = Boolean(process.env.AI_GATEWAY_API_KEY || process.env.VERCEL_OIDC_TOKEN);
-  return Response.json({ ok: true, aiConfigured });
+  return Response.json({ ok: true, aiEnabled: AI_ENABLED });
 }
