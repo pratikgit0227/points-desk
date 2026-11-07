@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { clearExamples, exampleBalances, type Balances, type CashPrices, type Ctx, type FoundBalance, type Values } from "@/lib/calc";
-import type { Filter, PartnerId } from "@/lib/data";
+import type { Cabin, Filter, PartnerId } from "@/lib/data";
 import { usePersisted } from "@/lib/persisted";
 
 export interface FinderState {
@@ -11,6 +11,17 @@ export interface FinderState {
   amt: number;
   cbName: string;
   cbPct: number;
+}
+
+export interface TripState {
+  q: string;
+  /** Destination id */
+  id: string;
+  cabin: Cabin;
+  /** One-way cash fare in ₹; 0 means use the destination's typical fare */
+  fare: number;
+  /** Index of the nonstop airline chosen for paying cash */
+  airline: number;
 }
 
 export interface PickState {
@@ -26,6 +37,7 @@ const ALL: Filter = "all";
 const NO_FOUND: FoundBalance[] = [];
 const FINDER: FinderState = { q: "indigo", mid: "indigo", amt: 6000, cbName: "", cbPct: 0 };
 const PICK: PickState = { spend: 400000, travel: 60000 };
+const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline: 0 };
 const NO_CASH: CashPrices = {};
 
 interface Store extends Ctx {
@@ -40,6 +52,8 @@ interface Store extends Ctx {
   finder: FinderState;
   setFinder: (patch: Partial<FinderState>) => void;
   pick: PickState;
+  trip: TripState;
+  setTrip: (patch: Partial<TripState>) => void;
   setPick: (patch: Partial<PickState>) => void;
   cashPrices: CashPrices;
   setCashPrice: (key: string, cash: number, tax: number) => void;
@@ -59,6 +73,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [found, setFound] = usePersisted("pd_found", NO_FOUND);
   const [finder, setFinderRaw] = usePersisted("pd_find", FINDER);
   const [pick, setPickRaw] = usePersisted("pd_pick", PICK);
+  const [trip, setTripRaw] = usePersisted("pd_trip", TRIP);
   const [cashPrices, setCash] = usePersisted("pd_cash", NO_CASH);
   const [tripDate, setTripDate] = usePersisted("pd_date", "");
   const [guide, setGuide] = useState<PartnerId | null>(null);
@@ -102,6 +117,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       finder: { ...FINDER, ...finder },
       setFinder: (patch) => setFinderRaw((prev) => ({ ...FINDER, ...prev, ...patch })),
       pick,
+      trip: { ...TRIP, ...trip },
+      setTrip: (patch) => setTripRaw((prev) => ({ ...TRIP, ...prev, ...patch })),
       setPick: (patch) =>
         setPickRaw((prev) => {
           const next = { ...prev, ...patch };
@@ -117,7 +134,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       openGuide: setGuide,
       closeGuide: () => setGuide(null),
     }),
-    [balances, values, filter, usingExample, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, cashPrices, setCash, tripDate, setTripDate, guide],
+    [balances, values, filter, usingExample, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -72,6 +72,50 @@ export interface Merchant {
   p?: string;
 }
 
+export type Cabin = "eco" | "biz";
+
+/** One way to reach a destination with a transfer partner's points. */
+export interface AwardRoute {
+  /** Transfer partner whose points pay for it */
+  p: string;
+  /** Airline actually flown */
+  airline: string;
+  /** e.g. "Delhi / Mumbai → Kuwait, nonstop" */
+  route: string;
+  /** One-way partner points, economy */
+  eco?: number;
+  /** One-way partner points, business */
+  biz?: number;
+  /**
+   * fixed: chart or zone price; dynamic: price moves, numbers are typical lows;
+   * revenue: points pay the cash fare (1 point ≈ ₹1)
+   */
+  pricing: "fixed" | "dynamic" | "revenue";
+  /** low = estimated from nearby routes, not seen for this exact route */
+  confidence: "high" | "medium" | "low";
+  /** Economy only (e.g. Air India Express) */
+  ecoOnly?: boolean;
+  note?: string;
+}
+
+export interface Destination {
+  id: string;
+  name: string;
+  country: string;
+  /** Main airport code */
+  code: string;
+  /** Extra search words: city names, airport codes, country */
+  kw: string;
+  /** Airlines flying nonstop from India, for paying cash */
+  nonstop: { airline: string; merchant?: string; from: string }[];
+  options: AwardRoute[];
+  note?: string;
+  /** Typical one-way cash fare in ₹ per cabin, as a starting value */
+  fare: Record<Cabin, number>;
+  checked: string;
+  src: string;
+}
+
 export interface FareSnapshot {
   cash: number;
   travel: string;

@@ -1,0 +1,197 @@
+"use client";
+
+import { useMemo } from "react";
+import { beatsValue, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type RoutePlan } from "@/lib/calc";
+import { DESTINATIONS, PARTNERS, type Cabin } from "@/lib/data";
+import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
+import { PartnerLink } from "./PartnerLink";
+import { useStore } from "./store";
+
+const CABINS: { c: Cabin; label: string }[] = [
+  { c: "eco", label: "Economy" },
+  { c: "biz", label: "Business" },
+];
+
+function cardLabel(plan: RoutePlan) {
+  return plan.best ? shortBank(plan.best.prog.bank) + " " + plan.best.prog.card : "";
+}
+
+/** "I'm travelling to Kuwait": best card to use points, and best card to pay cash. */
+export function DestinationFinder() {
+  const { trip, setTrip, balances, values } = useStore();
+  const hits = useMemo(() => matchDestinations(trip.q), [trip.q]);
+  const id = hits.length && !hits.some((d) => d.id === trip.id) ? hits[0].id : trip.id;
+  const dest = DESTINATIONS.find((d) => d.id === id) || DESTINATIONS[0];
+  const fare = trip.fare || dest.fare[trip.cabin];
+  const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values), [dest, trip.cabin, fare, balances, values]);
+  const airline = dest.nonstop[trip.airline] || dest.nonstop[0];
+  const payRows = useMemo(
+    () => (airline ? rankCardsForBooking({ merchant: merchantFor(airline), amount: fare, values }).slice(0, 3) : []),
+    [airline, fare, values],
+  );
+  const top = plans[0];
+
+  return (
+    <section className="finder" aria-labelledby="destH">
+      <div>
+        <h2 id="destH">Travelling somewhere? Best card for the destination</h2>
+        <p className="muted small" style={{ margin: "4px 0 0" }}>
+          For when a client says &quot;I&apos;m flying to Kuwait&quot; and the airline isn&apos;t a transfer partner. Shows every partner that gets you there with points, and which card to pay with if you buy the ticket.
+        </p>
+      </div>
+      <div className="f-in">
+        <label>
+          Where to?
+          <input
+            type="text"
+            placeholder="kuwait, dubai, doha…"
+            autoComplete="off"
+            value={trip.q}
+            onChange={(e) => {
+              const h = matchDestinations(e.target.value);
+              setTrip({ q: e.target.value, airline: 0, fare: 0, ...(h.length ? { id: h[0].id } : {}) });
+            }}
+          />
+        </label>
+        <label>
+          One-way cash fare (₹)
+          <input type="number" min="0" step="500" inputMode="numeric" value={fare || ""} onChange={(e) => setTrip({ fare: Math.max(0, +e.target.value || 0) })} />
+        </label>
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+        <div className="f-chips">
+          {hits.map((d) => (
+            <button key={d.id} type="button" className="chip" aria-pressed={d.id === id} onClick={() => setTrip({ id: d.id, q: d.name, airline: 0, fare: 0 })}>
+              {d.name}
+            </button>
+          ))}
+          {!hits.length && <span className="small muted" style={{ padding: "4px 10px" }}>Not in the list yet. Try a nearby hub: Dubai, Doha or Abu Dhabi.</span>}
+        </div>
+        <div className="chips" role="group" aria-label="Cabin">
+          {CABINS.map((c) => (
+            <button key={c.c} type="button" className="chip" aria-pressed={trip.cabin === c.c} onClick={() => setTrip({ cabin: c.c, fare: 0 })}>
+              {c.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {dest.note && (
+        <p className="small capnote" role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, background: "var(--brass-soft)", border: "1px solid var(--brass-line)" }}>
+          ⚠ {dest.note}
+        </p>
+      )}
+
+      {top ? (
+        <div className="f-win" style={{ gridTemplateColumns: "1fr" }}>
+          <div>
+            <div className="tag">
+              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way
+            </div>
+            <h3>
+              Use {cardLabel(top)} → {PARTNERS[top.p].n}
+            </h3>
+            <div className="big">
+              {fmt(top.cardPts)} {top.best!.prog.unit}
+            </div>
+            <p className="small">
+              {top.r.pricing === "revenue"
+                ? `${PARTNERS[top.p].n} points pay the fare directly: about ${fmt(top.miles)} points for a ${inr(fare)} ticket.`
+                : `Transfer at ${ratioTxt(top.best!.ratio)} for ${fmt(top.miles)} ${PARTNERS[top.p].n} points${top.r.confidence === "low" ? " (estimated price)" : ""}, then book ${top.r.airline}: ${top.r.route}.`}{" "}
+              {top.canBook ? "Your cards cover it." : `You need ${fmt(top.short)} more partner points.`}
+            </p>
+            {top.r.pricing !== "revenue" && (
+              <p className="small">
+                Against a {inr(fare)} cash fare that&apos;s ₹{top.perPoint.toFixed(2)} a {PARTNERS[top.p].n} point
+                {beatsValue(top, values) ? ", better than your set value. Use points." : ", below your set value. Paying cash and keeping the points may be better."}
+              </p>
+            )}
+            {top.capLimited && <p className="small capnote">This needs more than the card&apos;s yearly Group {top.best!.grp} transfer cap allows.</p>}
+            {top.r.note && <p className="small muted">{top.r.note}</p>}
+          </div>
+        </div>
+      ) : (
+        <p className="small muted">No transfer partner on your cards reaches {dest.name} in this cabin. Pay cash with the card below.</p>
+      )}
+
+      {plans.length > 0 && (
+        <div className="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Programme</th>
+                <th>Airline &amp; route</th>
+                <th className="r">Partner pts</th>
+                <th className="r">Best card</th>
+                <th className="r">Card pts</th>
+                <th>You can book</th>
+                <th className="r">₹ / partner pt</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map((pl, i) => (
+                <tr key={pl.p + pl.r.route} className={i === 0 ? "top1" : undefined}>
+                  <td>
+                    <PartnerLink p={pl.p} />
+                    {pl.best?.grp && <span className="grp">{pl.best.grp}</span>}
+                  </td>
+                  <td style={{ whiteSpace: "normal", minWidth: 200 }}>
+                    <div>{pl.r.airline}</div>
+                    <div className="small muted">
+                      {pl.r.route}
+                      {pl.r.pricing === "dynamic" ? " · price varies by date" : pl.r.pricing === "revenue" ? " · points pay the fare" : ""}
+                    </div>
+                  </td>
+                  <td className="r num" title={pl.r.note}>
+                    {fmt(pl.miles)}
+                    {pl.r.confidence === "low" && <span className="small muted"> est.</span>}
+                  </td>
+                  <td className="r">
+                    {cardLabel(pl)} <span className="small muted">({ratioTxt(pl.best!.ratio)})</span>
+                  </td>
+                  <td className="r num">{fmt(pl.cardPts)}</td>
+                  <td>{pl.canBook ? <span className="pill ok">Yes</span> : <span className="pill no">Need {fmt(pl.short)}</span>}</td>
+                  <td className="r num">{pl.r.pricing === "revenue" ? "—" : "₹" + pl.perPoint.toFixed(2)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {dest.nonstop.length > 0 && (
+        <div>
+          <h3 style={{ marginBottom: 6 }}>Paying cash instead? Earn the most on the ticket</h3>
+          <div className="f-chips" style={{ marginBottom: 10 }}>
+            {dest.nonstop.map((a, i) => (
+              <button key={a.airline} type="button" className="chip" aria-pressed={i === (dest.nonstop[trip.airline] ? trip.airline : 0)} onClick={() => setTrip({ airline: i })}>
+                {a.airline}
+              </button>
+            ))}
+          </div>
+          {airline && <p className="small muted" style={{ margin: "0 0 8px" }}>Nonstop from {airline.from}.</p>}
+          <div className="f-list">
+            {payRows.map((r) => (
+              <div className="f-row" key={r.prog!.key} style={{ gridTemplateColumns: "1fr auto" }}>
+                <div>
+                  <div>
+                    {r.name} · earns {fmt(r.pts)} {r.prog!.unit}
+                  </div>
+                  <div className="via">{r.best.via}</div>
+                </div>
+                <div className="val">
+                  {inr(r.best.v)}
+                  <div className="pct">{((r.best.v / fare) * 100).toFixed(1)}% back</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <p className="small muted">
+        Award prices are one-way lows checked {dest.checked}; &quot;est.&quot; means estimated from nearby routes. Taxes are extra and seats at that price are limited. The cash fare is a rough starting value: type the real one. Check the seat on the airline&apos;s site before transferring: transfers can&apos;t be reversed. Sources: {dest.src}.
+      </p>
+    </section>
+  );
+}

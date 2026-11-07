@@ -1,6 +1,7 @@
 import { BalanceImport } from "@/components/BalanceImport";
 import { BookingFinder } from "@/components/BookingFinder";
 import { CardPicker } from "@/components/CardPicker";
+import { DestinationFinder } from "@/components/DestinationFinder";
 import { FilterBar } from "@/components/FilterBar";
 import { GuideDialog } from "@/components/GuideDialog";
 import { Header } from "@/components/Header";
@@ -19,6 +20,7 @@ export default function Home() {
       <div className="wrap">
         <Header />
         <BookingFinder />
+        <DestinationFinder />
         <BalanceImport />
         <FilterBar />
         <Wallets />
