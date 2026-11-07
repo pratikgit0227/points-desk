@@ -50,9 +50,11 @@ describe("planDestination: Kuwait", () => {
   });
 
   it("prices IndiGo by the user's value per BluChip", () => {
-    const at1 = planDestination(kuwait, "eco", 16000, {}).find((p) => p.p === "indigo")!;
-    const atHalf = planDestination(kuwait, "eco", 16000, {}, { indigo: 0.5 }).find((p) => p.p === "indigo")!;
-    expect(atHalf.miles).toBe(at1.miles * 2);
+    // Default ₹0.40 per BluChip: a ₹16,000 fare needs 40,000 BluChips
+    const atDefault = planDestination(kuwait, "eco", 16000, {}).find((p) => p.p === "indigo")!;
+    expect(atDefault.miles).toBe(40000);
+    const atOne = planDestination(kuwait, "eco", 16000, {}, { indigo: 1 }).find((p) => p.p === "indigo")!;
+    expect(atOne.miles).toBe(16000);
   });
 
   it("puts bookable routes first", () => {
