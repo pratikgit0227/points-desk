@@ -71,7 +71,7 @@ export function DestinationFinder() {
           Where to?
           <input
             type="text"
-            placeholder="kuwait, dubai, doha…"
+            placeholder="kuwait, london, bali, tokyo…"
             autoComplete="off"
             value={trip.q}
             onChange={(e) => {
@@ -103,7 +103,7 @@ export function DestinationFinder() {
               {d.name}
             </button>
           ))}
-          {!hits.length && <span className="small muted" style={{ padding: "4px 10px" }}>Not in the list yet. Try a nearby hub: Dubai, Doha or Abu Dhabi.</span>}
+          {!hits.length && <span className="small muted" style={{ padding: "4px 10px" }}>Not in the list yet. Try the nearest big city or hub (e.g. Dubai, Singapore, London).</span>}
         </div>
         <div className="chips" role="group" aria-label="Cabin">
           {CABINS.map((c) => (

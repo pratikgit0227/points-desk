@@ -1,5 +1,6 @@
 import type { Destination } from "./types";
 import { AMERICAS_OCEANIA } from "./destinations-americas-oceania";
+import { ASIA } from "./destinations-asia";
 import { EUROPE_AFRICA } from "./destinations-europe-africa";
 
 /**
@@ -170,7 +171,7 @@ const GULF: Destination[] = [
 ];
 
 /** Every destination in the search, Gulf first. */
-export const DESTINATIONS: Destination[] = [...GULF, ...EUROPE_AFRICA, ...AMERICAS_OCEANIA];
+export const DESTINATIONS: Destination[] = [...GULF, ...ASIA, ...EUROPE_AFRICA, ...AMERICAS_OCEANIA];
 
 /** Indian departure airports for the live fare and award-seat links. */
 export const ORIGINS: { code: string; name: string }[] = [
