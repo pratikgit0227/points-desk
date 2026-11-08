@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { GuideIndex } from "@/components/GuideIndex";
 import { Notes } from "@/components/Notes";
 import { ValueEditor } from "@/components/ValueEditor";
@@ -15,6 +16,11 @@ export default function LearnPage() {
         <h1>Learn</h1>
         <p className="muted">How each airline and hotel programme works, the best awards from India, and the sources behind every number on this site.</p>
       </div>
+      <Link href="/changes" className="latest partner">
+        <span className="eyebrow">Changes feed</span>
+        <span>Every devaluation, ratio change and new partner in 2026, with dates and sources.</span>
+        <span className="small">Open →</span>
+      </Link>
       <GuideIndex />
       <ValueEditor />
       <Notes />
