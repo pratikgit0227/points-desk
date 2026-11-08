@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { DATA_CHECKED } from "@/lib/data";
+import { longDate } from "@/lib/format";
 import { TabNav } from "./TabNav";
 import { TABS } from "./tabs";
 
@@ -25,7 +27,9 @@ export function TopBar() {
         <TabNav />
       </Suspense>
       <div className="header-right">
-        <span className="asof">Ratios checked 25 Sep 2026</span>
+        <span className="asof" title="Source pages are checked every day; data is re-verified when one changes">
+          Ratios verified {longDate(DATA_CHECKED)} · watched daily
+        </span>
       </div>
     </div>
   );
