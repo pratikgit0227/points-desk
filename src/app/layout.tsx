@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { GuideDialog } from "@/components/GuideDialog";
+import { StoreProvider } from "@/components/store";
+import { TopBar } from "@/components/TopBar";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: "Points Desk",
+  title: { default: "Points Desk", template: "%s · Points Desk" },
   description:
     "Credit card reward points calculator by CA Pratik Bharda: Axis EDGE Miles, HDFC, Amex and HSBC transfer partners ranked by rupee value, with where-to-fly guides and a card picker.",
   applicationName: "Points Desk",
@@ -39,7 +42,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script data-cmp-ab="2" dangerouslySetInnerHTML={{ __html: TRAVELPAYOUTS_SCRIPT }} />
       </head>
-      <body>{children}</body>
+      <body>
+        <StoreProvider>
+          <TopBar />
+          {children}
+          <GuideDialog />
+        </StoreProvider>
+      </body>
     </html>
   );
 }

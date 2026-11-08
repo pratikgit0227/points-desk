@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useMemo } from "react";
 import { matchMerchants, rankCardsForBooking, type FinderRow } from "@/lib/calc";
 import { MERCHANTS } from "@/lib/data";
@@ -151,7 +152,8 @@ function FinderResult({ rows, amt, merchantName, hasMine }: { rows: FinderRow[];
         {hasMine
           ? "Cards worth getting are open to new applicants."
           : "Only cards open to new applicants are ranked; tick My cards above to include closed or invite-only cards you hold (Atlas, Infinia)."}{" "}
-        Value per point uses your editable partner values below.
+        Value per point uses the partner values on the{" "}
+        <Link href="/learn">Learn</Link> tab, which you can edit.
       </p>
     </>
   );
