@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Fragment, useMemo } from "react";
 import { matchMerchants, rankCardsForBooking, type FinderRow } from "@/lib/calc";
 import { MERCHANTS } from "@/lib/data";
 import { fmt, inr, shortBank } from "@/lib/format";
@@ -14,13 +14,13 @@ function shortVia(via: string) {
 }
 
 export function BookingFinder() {
-  const { finder: f, setFinder, values } = useStore();
+  const { finder: f, setFinder, values, mine } = useStore();
   const hits = useMemo(() => matchMerchants(f.q), [f.q]);
   const mid = hits.length && !hits.some((m) => m.id === f.mid) ? hits[0].id : f.mid;
   const merchant = MERCHANTS.find((x) => x.id === mid) || MERCHANTS[0];
   const rows = useMemo(
-    () => (f.amt ? rankCardsForBooking({ merchant, amount: f.amt, values, cashbackName: f.cbName, cashbackPct: f.cbPct }) : []),
-    [merchant, f.amt, f.cbName, f.cbPct, values],
+    () => (f.amt ? rankCardsForBooking({ merchant, amount: f.amt, values, cashbackName: f.cbName, cashbackPct: f.cbPct, mine }) : []),
+    [merchant, f.amt, f.cbName, f.cbPct, values, mine],
   );
 
   return (
@@ -69,16 +69,19 @@ export function BookingFinder() {
         </label>
       </div>
       <div aria-live="polite">
-        {!f.amt ? <p className="small muted">Enter the ticket amount to see the winner.</p> : <FinderResult rows={rows} amt={f.amt} merchantName={merchant.n} />}
+        {!f.amt ? <p className="small muted">Enter the ticket amount to see the winner.</p> : <FinderResult rows={rows} amt={f.amt} merchantName={merchant.n} hasMine={!!mine} />}
       </div>
     </section>
   );
 }
 
-function FinderResult({ rows, amt, merchantName }: { rows: FinderRow[]; amt: number; merchantName: string }) {
+function FinderResult({ rows, amt, merchantName, hasMine }: { rows: FinderRow[]; amt: number; merchantName: string; hasMine: boolean }) {
   const w = rows[0];
   if (!w) return null;
-  const pointsBest = rows.find((r) => !r.own);
+  const pointsBest = rows.find((r) => !r.own && (!hasMine || r.mine)) ?? rows.find((r) => !r.own);
+  // Best card the user doesn't hold, shown only when it beats their winner
+  const better = hasMine && w.mine ? rows.find((r) => !r.mine && r.best.v > w.best.v) : undefined;
+  const firstOther = hasMine ? rows.findIndex((r) => !r.mine) : -1;
   const cb = rows.find((r) => r.own);
   let verdict = "";
   if (cb && pointsBest) {
@@ -98,7 +101,9 @@ function FinderResult({ rows, amt, merchantName }: { rows: FinderRow[]; amt: num
       <div className="f-win">
         <div>{w.own || !w.prog ? <div className="big">Cashback</div> : <CardArt cardKey={w.prog.key} label={w.prog.card} bank={shortBank(w.prog.bank)} />}</div>
         <div>
-          <div className="tag">Pay {merchantName} with</div>
+          <div className="tag">
+            Pay {merchantName} with{hasMine && !w.mine ? " (none of your cards earn here; best card to get)" : ""}
+          </div>
           <h3>{w.name}</h3>
           <div className="big">{inr(w.best.v)} back</div>
           <p className="small">
@@ -110,31 +115,43 @@ function FinderResult({ rows, amt, merchantName }: { rows: FinderRow[]; amt: num
             </p>
           )}
           {verdict && <p className="small">{verdict}</p>}
+          {better && (
+            <p className="small">
+              Worth a look: <b>{better.name}</b> would give {inr(better.best.v)} back here ({pct(better.best.v, amt)}), {inr(better.best.v - w.best.v)} more.
+            </p>
+          )}
           {!w.own && w.ci?.est && <p className="small muted">Earn rate is the base retail rate, not checked for this merchant.</p>}
           {!w.own && w.ci?.status && !/^open/i.test(w.ci.status) && <p className="small muted">Card status: {w.ci.status}.</p>}
         </div>
       </div>
       <div className="f-list">
-        {rows.slice(1).map((r) => (
-          <div className="f-row" key={r.own ? "own" : r.prog!.key}>
-            <div>{!r.own && r.prog && <CardArt cardKey={r.prog.key} label={r.prog.card} bank={shortBank(r.prog.bank)} />}</div>
-            <div>
-              <div>{r.name}</div>
-              <div className="via">
-                {r.best.via}
-                {r.stretch ? ` · up to ${inr(r.stretch.v)} via ${shortVia(r.stretch.via)}` : ""}
-                {r.ci?.est ? " · base rate" : ""}
+        {rows.slice(1).map((r, i) => (
+          <Fragment key={r.own ? "own" : r.prog!.key}>
+            {i + 1 === firstOther && <div className="f-sub">Cards worth getting</div>}
+            <div className="f-row">
+              <div>{!r.own && r.prog && <CardArt cardKey={r.prog.key} label={r.prog.card} bank={shortBank(r.prog.bank)} />}</div>
+              <div>
+                <div>{r.name}</div>
+                <div className="via">
+                  {r.best.via}
+                  {r.stretch ? ` · up to ${inr(r.stretch.v)} via ${shortVia(r.stretch.via)}` : ""}
+                  {r.ci?.est ? " · base rate" : ""}
+                </div>
+              </div>
+              <div className="val">
+                {inr(r.best.v)}
+                <div className="pct">{pct(r.best.v, amt)}</div>
               </div>
             </div>
-            <div className="val">
-              {inr(r.best.v)}
-              <div className="pct">{pct(r.best.v, amt)}</div>
-            </div>
-          </div>
+          </Fragment>
         ))}
       </div>
       <p className="small muted">
-        Assumes the booking is made on the airline or hotel&apos;s own site and counts as travel spend. Portal bookings (SmartBuy, Travel EDGE) earn differently, and some cards exclude certain merchants, so check the card&apos;s terms. Axis Atlas is closed to new applicants. Value per point uses your editable partner values below.
+        Assumes the booking is made on the airline or hotel&apos;s own site and counts as travel spend. Portal bookings (SmartBuy, Travel EDGE) earn differently, and some cards exclude certain merchants, so check the card&apos;s terms.{" "}
+        {hasMine
+          ? "Cards worth getting are open to new applicants."
+          : "Only cards open to new applicants are ranked; tick My cards above to include closed or invite-only cards you hold (Atlas, Infinia)."}{" "}
+        Value per point uses your editable partner values below.
       </p>
     </>
   );

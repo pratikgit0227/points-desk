@@ -43,9 +43,14 @@ const FINDER: FinderState = { q: "indigo", mid: "indigo", amt: 6000, cbName: "",
 const PICK: PickState = { spend: 400000, travel: 60000 };
 const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline: 0, from: "DEL", date: "" };
 const NO_CASH: CashPrices = {};
+const NOT_SET: string[] | null = null;
 
 interface Store extends Ctx {
   usingExample: boolean;
+  /** Program keys of the cards the user holds; null until they pick */
+  mine: string[] | null;
+  toggleMine: (key: string) => void;
+  clearMine: () => void;
   setBalance: (key: string, n: number) => void;
   applyFound: (items: FoundBalance[]) => void;
   setValue: (p: string, v: number) => void;
@@ -80,10 +85,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [trip, setTripRaw] = usePersisted("pd_trip", TRIP);
   const [cashPrices, setCash] = usePersisted("pd_cash", NO_CASH);
   const [tripDate, setTripDate] = usePersisted("pd_date", "");
+  const [mineRaw, setMine] = usePersisted("pd_mine", NOT_SET);
   const [guide, setGuide] = useState<PartnerId | null>(null);
 
-  const balances = saved ?? EXAMPLE;
-  const usingExample = Object.values(balances).some((b) => b.src === "ex");
+  // An empty pick behaves like "not set"
+  const mine = mineRaw?.length ? mineRaw : null;
+  const all = saved ?? EXAMPLE;
+  // Only cards the user holds count towards worth and trips
+  const balances = useMemo(() => (mine ? Object.fromEntries(Object.entries(all).filter(([k]) => mine.includes(k))) : all), [all, mine]);
+  const usingExample = Object.values(balances).some((b) => b.src === "ex" && b.n > 0);
 
   const setBalance = useCallback(
     (key: string, n: number) => setSaved((prev) => ({ ...clearExamples(prev ?? EXAMPLE), [key]: { n: Math.max(0, Math.round(n || 0)), src: "manual" } })),
@@ -111,6 +121,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       values,
       filter,
       usingExample,
+      mine,
+      toggleMine: (key) => setMine((prev) => (prev?.includes(key) ? prev.filter((k) => k !== key) : [...(prev ?? []), key])),
+      clearMine: () => setMine(null),
       setBalance,
       applyFound,
       setValue: (p, v) => setValues((prev) => ({ ...prev, [p]: Math.max(0, v || 0) })),
@@ -138,7 +151,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       openGuide: setGuide,
       closeGuide: () => setGuide(null),
     }),
-    [balances, values, filter, usingExample, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
+    [balances, values, filter, usingExample, mine, setMine, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

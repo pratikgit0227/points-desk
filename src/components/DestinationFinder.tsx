@@ -37,7 +37,7 @@ function cardLabel(plan: RoutePlan) {
 
 /** "I'm travelling to Kuwait": best card to use points, and best card to pay cash. */
 export function DestinationFinder() {
-  const { trip, setTrip, balances, values } = useStore();
+  const { trip, setTrip, balances, values, mine } = useStore();
   const hits = useMemo(() => matchDestinations(trip.q), [trip.q]);
   const id = hits.length && !hits.some((d) => d.id === trip.id) ? hits[0].id : trip.id;
   const dest = DESTINATIONS.find((d) => d.id === id) || DESTINATIONS[0];
@@ -50,12 +50,15 @@ export function DestinationFinder() {
   const foundPrice = found.status === "ok" ? found.fare.price : 0;
   const fare = trip.fare || foundPrice || dest.fare[trip.cabin];
   const fareSource = trip.fare ? "Your fare" : foundPrice ? "Cheapest found on Aviasales" : "Rough estimate: type the real fare";
-  const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values), [dest, trip.cabin, fare, balances, values]);
+  const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values, mine), [dest, trip.cabin, fare, balances, values, mine]);
   const airline = dest.nonstop[trip.airline] || dest.nonstop[0];
-  const payRows = useMemo(
-    () => (airline ? rankCardsForBooking({ merchant: merchantFor(airline), amount: fare, values }).slice(0, 3) : []),
-    [airline, fare, values],
+  const payAll = useMemo(
+    () => (airline ? rankCardsForBooking({ merchant: merchantFor(airline), amount: fare, values, mine }) : []),
+    [airline, fare, values, mine],
   );
+  // Your cards first; one card you don't hold only if it beats them
+  const payRows = mine ? payAll.filter((r) => r.mine).slice(0, 3) : payAll.slice(0, 3);
+  const payBetter = mine ? payAll.find((r) => !r.mine && r.best.v > (payRows[0]?.best.v ?? 0)) : undefined;
   const top = plans[0];
 
   return (
@@ -250,6 +253,11 @@ export function DestinationFinder() {
                 </div>
               </div>
             ))}
+            {payBetter && (
+              <p className="small" style={{ margin: "4px 0 0" }}>
+                Worth a look: <b>{payBetter.name}</b> would earn {inr(payBetter.best.v)} ({((payBetter.best.v / fare) * 100).toFixed(1)}%) on this ticket.
+              </p>
+            )}
           </div>
         </div>
       )}

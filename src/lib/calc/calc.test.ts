@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findProgram, GUIDES, MERCHANTS, PARTNERS, PROGRAMS, type PartnerId } from "@/lib/data";
+import { DESTINATIONS, findProgram, GUIDES, isOpenCard, MERCHANTS, PARTNERS, PROGRAMS, type PartnerId } from "@/lib/data";
 import { inr, ratioTxt } from "@/lib/format";
 import {
   clearExamples,
@@ -9,6 +9,7 @@ import {
   matchMerchants,
   perPoint,
   pickCards,
+  planDestination,
   pool,
   rankCardsForBooking,
   totalWorth,
@@ -167,6 +168,33 @@ describe("booking finder", () => {
   it("ranks cards by value back", () => {
     const rows = rankCardsForBooking({ merchant: MERCHANTS[0], amount: 6000, values: {} });
     for (let i = 1; i < rows.length; i++) expect(rows[i - 1].best.v).toBeGreaterThanOrEqual(rows[i].best.v);
+  });
+  it("without my cards, ranks only cards open to new applicants", () => {
+    const keys = rankCardsForBooking({ merchant: MERCHANTS[0], amount: 6000, values: {} }).map((r) => r.prog!.key);
+    expect(keys).not.toContain("axis_atlas");
+    expect(keys).not.toContain("hdfc_infinia");
+    expect(keys.every((k) => isOpenCard(k))).toBe(true);
+  });
+  it("with my cards, ranks the user's cards first, closed ones included", () => {
+    const mine = ["axis_atlas", "hdfc_regalia_gold"];
+    const rows = rankCardsForBooking({ merchant: MERCHANTS[0], amount: 6000, values: {}, mine });
+    expect(rows.slice(0, 2).every((r) => r.mine)).toBe(true);
+    expect(rows[0].prog!.key).toBe("axis_atlas");
+    // Cards the user doesn't hold are open ones only
+    expect(rows.slice(2).every((r) => !r.mine && isOpenCard(r.prog!.key))).toBe(true);
+  });
+});
+
+describe("my cards in the destination search", () => {
+  it("never suggests a closed card the user doesn't hold", () => {
+    const kwi = DESTINATIONS.find((d) => d.id === "kwi")!;
+    const plans = planDestination(kwi, "eco", 16000, {}, {});
+    expect(plans.every((p) => isOpenCard(p.best!.prog.key))).toBe(true);
+  });
+  it("uses a closed card the user holds", () => {
+    const kwi = DESTINATIONS.find((d) => d.id === "kwi")!;
+    const plans = planDestination(kwi, "eco", 16000, {}, {}, ["axis_atlas"]);
+    expect(plans.some((p) => p.best!.prog.key === "axis_atlas")).toBe(true);
   });
 });
 

@@ -1,4 +1,4 @@
-import { DESTINATIONS, MERCHANTS, type AwardRoute, type Cabin, type Destination, type PartnerId } from "@/lib/data";
+import { DESTINATIONS, MERCHANTS, canShowCard, type AwardRoute, type Cabin, type Destination, type PartnerId } from "@/lib/data";
 import type { Balances, Values } from "./types";
 import { pool, valueOf, type PoolSource } from "./wallet";
 
@@ -36,7 +36,7 @@ export interface RoutePlan {
  * Every way to reach a destination with points, for one cabin.
  * Sorted: bookable first, then by what the card points are worth elsewhere.
  */
-export function planDestination(d: Destination, cabin: Cabin, fare: number, balances: Balances, values: Values = {}): RoutePlan[] {
+export function planDestination(d: Destination, cabin: Cabin, fare: number, balances: Balances, values: Values = {}, mine: readonly string[] | null = null): RoutePlan[] {
   const plans: RoutePlan[] = [];
   for (const r of d.options) {
     const p = r.p as PartnerId;
@@ -44,8 +44,8 @@ export function planDestination(d: Destination, cabin: Cabin, fare: number, bala
     const miles = r.pricing === "revenue" ? (cabin === "eco" ? Math.ceil(fare / valueOf(values, p)) : 0) : r[cabin];
     if (!miles) continue;
     const pl = pool(p, balances);
-    // Best ratio among cards the user holds points on; else the best card overall
-    const best = pl.srcs.find((s) => s.bal > 0) ?? pl.bestRatio;
+    // Best ratio among cards the user holds points on; else the best card they hold or could get
+    const best = pl.srcs.find((s) => s.bal > 0) ?? pl.srcs.find((s) => canShowCard(s.prog.key, mine)) ?? null;
     if (!best) continue;
     const cardPts = Math.ceil(miles / best.ratio);
     plans.push({

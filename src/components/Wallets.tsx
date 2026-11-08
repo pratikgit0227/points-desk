@@ -7,9 +7,11 @@ import { PartnerLink } from "./PartnerLink";
 import { useStore } from "./store";
 
 export function Wallets() {
+  const { mine } = useStore();
+  const shown = mine ? PROGRAMS.filter((p) => mine.includes(p.key)) : PROGRAMS;
   return (
     <div className="wallets">
-      {PROGRAMS.map((prog) => (
+      {shown.map((prog) => (
         <Wallet key={prog.key} prog={prog} />
       ))}
     </div>
