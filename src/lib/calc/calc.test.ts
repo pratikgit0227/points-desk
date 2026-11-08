@@ -214,6 +214,6 @@ describe("card picker", () => {
 describe("transferMatrix", () => {
   it("highlights the best ratio per partner", () => {
     const kf = transferMatrix("all").find((r) => r.p === "krisflyer")!;
-    expect(kf.best).toBe(2);
+    expect(kf.best).toBe(4); // Axis Olympus 1:4
   });
 });
