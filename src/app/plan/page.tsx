@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { BookingFinder } from "@/components/BookingFinder";
 import { DestinationFinder } from "@/components/DestinationFinder";
 import { MyCards } from "@/components/MyCards";
@@ -13,7 +14,7 @@ export default function PlanPage() {
     <main className="wrap">
       <div className="page-intro">
         <h1>Plan a trip</h1>
-        <p className="muted">Where you&apos;re going or what you&apos;re booking: the best way to use points, and the best card to pay with if you buy the ticket.</p>
+        <p className="muted">Where you&apos;re going or what you&apos;re booking: the best way to use points, and the best card to pay with if you buy the ticket. Or browse <Link href="/fly">all destinations</Link>.</p>
       </div>
       <MyCards />
       <DestinationFinder />

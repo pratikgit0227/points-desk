@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
-import { pickCards } from "@/lib/calc";
+import { cardSlug, pickCards } from "@/lib/calc";
 import { cardName } from "@/lib/data";
 import { fmt, inr } from "@/lib/format";
 import { useStore } from "./store";
@@ -46,7 +47,7 @@ export function CardPicker() {
               <tr key={r.prog.key} className={i === 0 ? "win" : undefined}>
                 <td>
                   <div>
-                    {r.ci.label || cardName(r.prog)} {mine?.includes(r.prog.key) && <span className="pill mine">You have this</span>}
+                    <Link href={`/cards/${cardSlug(r.prog.key)}`}>{r.ci.label || cardName(r.prog)}</Link> {mine?.includes(r.prog.key) && <span className="pill mine">You have this</span>}
                   </div>
                   <div className="small muted">{r.ci.status}</div>
                 </td>
