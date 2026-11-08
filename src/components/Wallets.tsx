@@ -66,6 +66,7 @@ function Wallet({ prog }: { prog: Program }) {
         <span className="unit">{prog.unit}</span>
       </div>
 
+      {t.note && <p className="small capnote" style={{ margin: 0 }}>{t.note}</p>}
       <div className="best">
         <div className="label">Best move</div>
         {!b.n ? (

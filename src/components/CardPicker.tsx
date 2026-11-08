@@ -86,7 +86,7 @@ export function CardPicker() {
       </div>
       <p className="small muted" style={{ margin: 0 }}>
         {w
-          ? `At ${inr(pick.spend)} a year, ${w.ci.label || w.prog.card} leaves you the most: ${inr(w.net)} after its fee. Year-1 welcome bonuses aren't counted. Axis Atlas is closed to new applicants, so it isn't in this list.`
+          ? `At ${inr(pick.spend)} a year, ${w.ci.label || w.prog.card} leaves you the most: ${inr(w.net)} after its fee. Year-1 welcome bonuses aren't counted. Axis Atlas is closed and Amex has paused new applications in India, so neither is in this list.`
           : ""}{" "}
         <ApplyNote keys={rows.map((r) => r.prog.key)} />
       </p>

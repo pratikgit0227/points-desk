@@ -45,6 +45,8 @@ export interface CardInfo {
   pick?: boolean;
   label?: string;
   why?: string;
+  /** Shown on the wallet card, e.g. a rule change holders should know */
+  note?: string;
 }
 
 export interface Spot {
