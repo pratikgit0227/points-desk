@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
-import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
+import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
 import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
 import { PartnerLink } from "./PartnerLink";
@@ -150,7 +151,8 @@ export function DestinationFinder() {
         <div className="f-win" style={{ gridTemplateColumns: "1fr" }}>
           <div>
             <div className="tag">
-              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way
+              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way ·{" "}
+              <Link href={`/fly/${destSlug(dest)}`}>{dest.name} page to share ↗</Link>
             </div>
             <h3>
               Use {cardLabel(top)} → {PARTNERS[top.p].n}

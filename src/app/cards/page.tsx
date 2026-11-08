@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { CardPicker } from "@/components/CardPicker";
+import { cardSlug } from "@/lib/calc";
+import { PROGRAMS, cardName } from "@/lib/data";
 import { Matrix } from "@/components/Matrix";
 
 export const metadata: Metadata = {
@@ -14,6 +17,13 @@ export default function CardsPage() {
         <h1>Choose a card</h1>
         <p className="muted">Compare the open travel cards on what they earn you in a year after the fee, and see which card transfers best to each partner.</p>
       </div>
+      <nav className="card-links" aria-label="All cards">
+        {PROGRAMS.map((p) => (
+          <Link key={p.key} href={`/cards/${cardSlug(p.key)}`}>
+            {cardName(p)}
+          </Link>
+        ))}
+      </nav>
       <CardPicker />
       <Matrix />
     </main>

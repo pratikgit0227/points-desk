@@ -10,7 +10,7 @@ export function TabNav() {
   return (
     <nav className="tabs" aria-label="Sections">
       {TABS.map((t) => {
-        const on = t.href === "/" ? path === "/" : path.startsWith(t.href);
+        const on = t.href === "/" ? path === "/" : path.startsWith(t.href) || (t.href === "/plan" && path.startsWith("/fly"));
         return (
           <Link key={t.href} href={t.href} className="tab" aria-current={on ? "page" : undefined}>
             {t.label}

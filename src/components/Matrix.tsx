@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo } from "react";
-import { transferMatrix } from "@/lib/calc";
+import { cardSlug, transferMatrix } from "@/lib/calc";
 import { PROGRAMS } from "@/lib/data";
 import { PartnerLink } from "./PartnerLink";
 
@@ -20,7 +21,7 @@ export function Matrix() {
               <th>Partner</th>
               {PROGRAMS.map((p) => (
                 <th key={p.key} className="r prog">
-                  {p.card}
+                  <Link href={`/cards/${cardSlug(p.key)}`}>{p.card}</Link>
                 </th>
               ))}
             </tr>

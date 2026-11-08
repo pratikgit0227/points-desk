@@ -8,7 +8,10 @@ import { TopBar } from "@/components/TopBar";
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://suiteandseat.vercel.app"),
   title: { default: "Points Desk", template: "%s · Points Desk" },
+  openGraph: { siteName: "Points Desk", locale: "en_IN", type: "website" },
+  twitter: { card: "summary_large_image", creator: "@pratik0227" },
   description:
     "Credit card reward points calculator by CA Pratik Bharda: Axis EDGE Miles, HDFC, Amex and HSBC transfer partners ranked by rupee value, with where-to-fly guides and a card picker.",
   applicationName: "Points Desk",

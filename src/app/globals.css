@@ -275,3 +275,22 @@ dialog#guide::backdrop{background:rgba(17,24,39,.45)}
 .guide-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
 .guide-item{text-align:left;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
 .guide-item .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);font-weight:700}
+
+/* card and destination pages */
+.crumbs{color:var(--ink-3)}
+.crumbs a,.page-intro a,.panel a{color:var(--accent);font-weight:600;text-decoration:none}
+.crumbs a:hover,.panel a:hover{text-decoration:underline}
+.actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-top:6px}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.fact-v{font-size:1.25rem;font-weight:700;font-variant-numeric:tabular-nums}
+.fact-v.warn{color:var(--warn);font-size:1rem}
+.dest-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.dest-tile{display:flex;flex-direction:column;gap:2px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);text-decoration:none;transition:.12s}
+.panel .dest-tile{color:var(--ink);font-weight:400}
+.dest-tile:hover{border-color:var(--accent);box-shadow:var(--shadow-lg)}
+.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.card-links{display:flex;flex-wrap:wrap;gap:8px}
+.card-links a{border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--surface);font-size:.84rem}
+.finder .tag a,.card-links a{color:var(--accent);font-weight:600;text-decoration:none}
+.finder .tag a{text-transform:none;letter-spacing:0}
