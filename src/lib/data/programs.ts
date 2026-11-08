@@ -81,6 +81,19 @@ export const CARD_ART: Record<string, readonly [string, string]> = {
   hsbc_travelone:["#9b1c1c","#2b2b2b"], axis_horizon:["#0d5c63","#7fd1c8"], scapia:["#5b3bb5","#b79bff"]
 };
 
+/** New applicants can get this card (not closed, invite-only or relationship-only). */
+export function isOpenCard(key: string): boolean {
+  return /^open/i.test(CARD_INFO[key]?.status ?? "");
+}
+
+/**
+ * Cards a ranking may show. With "my cards" set: the user's cards plus open ones
+ * they could get. Without it: open cards only, so a closed card never "wins".
+ */
+export function canShowCard(key: string, mine: readonly string[] | null): boolean {
+  return (mine?.includes(key) ?? false) || isOpenCard(key);
+}
+
 /** "HDFC Regalia Gold", "Amex Platinum Travel" etc. */
 export function cardName(prog: Program): string {
   return CARD_INFO[prog.key]?.label || prog.bank.replace(" Bank", "") + " " + prog.card;

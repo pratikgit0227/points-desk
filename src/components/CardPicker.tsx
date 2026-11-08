@@ -7,7 +7,7 @@ import { fmt, inr } from "@/lib/format";
 import { useStore } from "./store";
 
 export function CardPicker() {
-  const { pick, setPick, values, openGuide } = useStore();
+  const { pick, setPick, values, openGuide, mine } = useStore();
   const rows = useMemo(() => pickCards(pick.spend, pick.travel, values), [pick.spend, pick.travel, values]);
   const w = rows[0];
 
@@ -45,7 +45,9 @@ export function CardPicker() {
             {rows.map((r, i) => (
               <tr key={r.prog.key} className={i === 0 ? "win" : undefined}>
                 <td>
-                  <div>{r.ci.label || cardName(r.prog)}</div>
+                  <div>
+                    {r.ci.label || cardName(r.prog)} {mine?.includes(r.prog.key) && <span className="pill mine">You have this</span>}
+                  </div>
                   <div className="small muted">{r.ci.status}</div>
                 </td>
                 <td className="r num">{fmt(r.pts)}</td>

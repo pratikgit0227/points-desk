@@ -7,6 +7,7 @@ import { GuideDialog } from "@/components/GuideDialog";
 import { Header } from "@/components/Header";
 import { TopBar } from "@/components/TopBar";
 import { Matrix } from "@/components/Matrix";
+import { MyCards } from "@/components/MyCards";
 import { Notes } from "@/components/Notes";
 import { StoreProvider } from "@/components/store";
 import { Trips } from "@/components/Trips";
@@ -19,6 +20,7 @@ export default function Home() {
       <TopBar />
       <div className="wrap">
         <Header />
+        <MyCards />
         <BookingFinder />
         <DestinationFinder />
         <BalanceImport />
