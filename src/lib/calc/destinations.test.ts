@@ -75,10 +75,16 @@ describe("live price links", () => {
   it("builds dated cash-fare searches from the chosen city", async () => {
     const { cashFareLinks } = await import("./trips");
     const links = cashFareLinks("HYD", "KWI", "2027-01-15", "Business");
-    expect(links.map((l) => l.label)).toEqual(["Google Flights", "Skyscanner", "MakeMyTrip"]);
-    expect(links[1].href).toContain("/hyd/kwi/270115/");
-    expect(links[1].href).toContain("cabinclass=business");
-    expect(links[2].href).toContain("itinerary=HYD-KWI-15/01/2027");
+    expect(links.map((l) => l.label)).toEqual(["Aviasales (pick cabin)", "Google Flights", "Skyscanner", "MakeMyTrip"]);
+    expect(links[0]).toMatchObject({ href: "https://www.aviasales.com/search/HYD1501KWI1?marker=597231", aff: true });
+    expect(links[2].href).toContain("/hyd/kwi/270115/");
+    expect(links[2].href).toContain("cabinclass=business");
+    expect(links[3].href).toContain("itinerary=HYD-KWI-15/01/2027");
+    expect(links.filter((l) => l.aff)).toHaveLength(1);
+  });
+  it("skips Aviasales when there are no airport codes", async () => {
+    const { cashFareLinks } = await import("./trips");
+    expect(cashFareLinks("Delhi", "Anywhere in Japan", "2027-01-15", "Economy", false).map((l) => l.label)).toEqual(["Google Flights"]);
   });
   it("links award searches for the programme", async () => {
     const { awardLinks } = await import("./trips");

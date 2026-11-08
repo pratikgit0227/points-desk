@@ -46,7 +46,7 @@ export function Notes() {
       </div>
       <div>Balances and values you enter are saved in your browser only.</div>
       <div>
-        How Points Desk makes money: fare links may carry a Travelpayouts referral code, and card apply links may become affiliate links (marked * when they do).
+        How Points Desk makes money: Aviasales fare links (marked *) carry a Travelpayouts referral code, so the site may earn a small fee if you book. Card apply links may become affiliate links too, and will be marked * when they do.
         Neither changes any ranking or value on this site: cards are ranked only by what your points are worth.
       </div>
     </section>
