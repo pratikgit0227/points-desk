@@ -63,7 +63,7 @@ export function DestinationFinder() {
       <div>
         <h2 id="destH">Travelling somewhere? Best card for the destination</h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>
-          For when a client says &quot;I&apos;m flying to Kuwait&quot; and the airline isn&apos;t a transfer partner. Shows every partner that gets you there with points, and which card to pay with if you buy the ticket.
+          Flying to Kuwait, Bali or London, even on an airline that isn&apos;t a transfer partner? See every way to get there with points, and which card to pay with if you buy the ticket.
         </p>
       </div>
       <div className="f-in">
