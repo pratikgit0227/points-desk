@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description:
     "Credit card reward points calculator by CA Pratik Bharda: Axis EDGE Miles, HDFC, Amex and HSBC transfer partners ranked by rupee value, with where-to-fly guides and a card picker.",
   applicationName: "Points Desk",
+  // Google Search Console ownership check (public code, safe to commit)
+  verification: { google: "98JxIFvSlK8eNpqWDmdXLyV4zj_7vfQJQqdVe_t1gys" },
   authors: [{ name: "CA Pratik Bharda", url: "https://x.com/pratik0227" }],
 };
 
