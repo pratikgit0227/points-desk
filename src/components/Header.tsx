@@ -6,9 +6,11 @@ import { inr } from "@/lib/format";
 import { useStore } from "./store";
 
 export function Header() {
-  const { balances, values, filter } = useStore();
+  const { balances, values, filter, usingExample } = useStore();
   const total = useMemo(() => totalWorth({ balances, values, filter }), [balances, values, filter]);
-  const note = filter === "all" ? "using each card's best option" : "best " + (filter === "air" ? "flight" : "hotel") + " option per card";
+  const note =
+    (filter === "all" ? "Best use of every point" : "Best " + (filter === "air" ? "flight" : "hotel") + " use of every point") +
+    ", within yearly transfer caps";
   return (
     <header className="top">
       <div>
@@ -19,7 +21,7 @@ export function Header() {
         </p>
       </div>
       <div className="worth">
-        <div className="eyebrow">Best-case worth, all cards</div>
+        <div className="eyebrow">{usingExample ? "Example wallet worth" : "Your points are worth up to"}</div>
         <div className="big">{inr(total)}</div>
         <div className="small muted">{note}</div>
       </div>

@@ -28,12 +28,12 @@ export function BookingFinder() {
       <div>
         <h2 id="findH">Which card for this booking?</h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>
-          A client says &quot;I&apos;m booking an IndiGo ticket, which card, cashback or points?&quot; Type what they&apos;re buying and the amount. Card pictures are illustrations, not the banks&apos; artwork.
+          Booking an IndiGo ticket or a hotel? Type what you&apos;re buying and the amount to see which card gives the most back, in points or cashback. Card pictures are illustrations, not the banks&apos; artwork.
         </p>
       </div>
       <div className="f-in">
         <label>
-          What are they buying?
+          What are you buying?
           <input
             type="text"
             placeholder="indigo, air india, hotel…"
@@ -60,7 +60,7 @@ export function BookingFinder() {
       </div>
       <div className="f-cb">
         <label>
-          Own cashback card (optional)
+          Your cashback card (optional)
           <input type="text" placeholder="e.g. SBI Cashback" value={f.cbName} onChange={(e) => setFinder({ cbName: e.target.value })} />
         </label>
         <label>
@@ -84,10 +84,13 @@ function FinderResult({ rows, amt, merchantName }: { rows: FinderRow[]; amt: num
   if (cb && pointsBest) {
     verdict =
       cb.best.v >= pointsBest.best.v
-        ? `Cashback wins here: ${inr(cb.best.v)} against ${inr(pointsBest.best.v)} from the best points card. Cash is also certain, points are only worth that if the client redeems them well.`
+        ? `Cashback wins here: ${inr(cb.best.v)} against ${inr(pointsBest.best.v)} from the best points card. Cash is also certain; points are only worth that if you redeem them well.`
         : `Points win: ${inr(pointsBest.best.v)} on ${pointsBest.name} against ${inr(cb.best.v)} cashback.`;
   } else if (pointsBest?.cash) {
-    verdict = `Points or cashback? As plain cash, ${pointsBest.name} gives ${inr(pointsBest.cash.v)} on this booking. Using the points well gives ${inr(pointsBest.best.v)}. Add the client's cashback card above to compare directly.`;
+    const better = pointsBest.best.v > pointsBest.cash.v ? pointsBest.best : null;
+    verdict = better
+      ? `Points or cashback? Used like cash, ${pointsBest.name} gives ${inr(pointsBest.cash.v)}; transferred well, up to ${inr(better.v)}. Add your cashback card above to compare.`
+      : `Add your cashback card above to see whether cashback beats ${inr(pointsBest.best.v)} in points.`;
   }
 
   return (

@@ -82,19 +82,35 @@ function Wallet({ prog }: { prog: Program }) {
             <div className="partner">{PARTNERS[best.p].n}</div>
             <div className="line">
               <span className="num">{`${fmt(best.usable)} → ${fmt(best.got)} pts (${ratioTxt(best.ratio)})`}</span>
-              <span className="val num">{inr(best.worth)}</span>
+              <span className="val num">{inr(w.plan.length > 1 ? best.worth : w.bestWorth)}</span>
             </div>
             <div className="vs">
-              {`₹${best.per.toFixed(2)} per point · ${(base.per ? best.per / base.per : 0).toFixed(1)}× the ${prog.base.label} value of ${inr(base.worth)}`}
+              {`₹${best.per.toFixed(2)} per point · ${(base.per ? best.per / base.per : 0).toFixed(1)}× the ${prog.base.label} value`}
             </div>
             <button type="button" className="how" onClick={() => openGuide(best.p)}>
               How to use {PARTNERS[best.p].n} →
             </button>
-            {best.capped && best.grp && prog.caps && (
-              <div className="capnote">
-                Group {best.grp} cap is {fmt(prog.caps[best.grp])} a year. Send the remaining {fmt(b.n - best.usable)} to the next-best option below.
+            {w.plan.length > 1 && (
+              <div className="split">
+                {best.capped && best.grp && prog.caps && (
+                  <div className="capnote">Group {best.grp} allows {fmt(prog.caps[best.grp])} a year. Split the rest:</div>
+                )}
+                {w.plan.slice(1).map((s, i) => (
+                  <div className="line small" key={s.p ?? "direct"}>
+                    <span>
+                      {i + 2}. {s.p ? `${fmt(s.pts)} → ${PARTNERS[s.p].n} (${ratioTxt(s.ratio!)})` : `${fmt(s.pts)} → ${prog.base.label}`}
+                    </span>
+                    <span className="num">{inr(s.worth)}</span>
+                  </div>
+                ))}
+                <div className="line total">
+                  <span>All {fmt(b.n)} {prog.unit}</span>
+                  <span className="val num">{inr(w.bestWorth)}</span>
+                </div>
+                <div className="vs">Against {inr(base.worth)} if you redeem everything directly.</div>
               </div>
             )}
+            {w.plan.length === 1 && <div className="vs">Against {inr(base.worth)} if you redeem directly.</div>}
           </>
         )}
       </div>

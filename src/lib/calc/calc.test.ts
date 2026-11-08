@@ -86,6 +86,27 @@ describe("walletSummary / totalWorth", () => {
     const b = { axis_atlas: { n: 10000, src: "manual" as const }, scapia: { n: 5000, src: "manual" as const } };
     expect(totalWorth(ctx(b))).toBeCloseTo(10000 * 2.6 + 5000 * 0.2);
   });
+
+  it("splits a capped balance instead of dropping the rest", () => {
+    // 48,250 EDGE Miles: 30,000 fill the Group A cap at ₹2.60, the rest go to the best Group B partner
+    const w = walletSummary(atlas, ctx({ axis_atlas: { n: 48250, src: "manual" } }));
+    expect(w.plan[0].pts).toBe(30000);
+    expect(w.plan[0].grp).toBe("A");
+    expect(w.plan.reduce((s, x) => s + x.pts, 0)).toBe(48250);
+    expect(w.plan.filter((x) => x.grp === "A").reduce((s, x) => s + x.pts, 0)).toBeLessThanOrEqual(30000);
+    const bestB = transferOptions(atlas, ctx({ axis_atlas: { n: 48250, src: "manual" } })).find((o) => o.grp === "B")!;
+    expect(w.bestWorth).toBeCloseTo(30000 * 2.6 + 18250 * Math.max(bestB.per, atlas.base.v));
+    expect(w.bestWorth).toBeGreaterThan(w.best!.worth);
+  });
+
+  it("redeems directly what no partner beats", () => {
+    const w = walletSummary(atlas, ctx({ axis_atlas: { n: 200000, src: "manual" } }));
+    const last = w.plan[w.plan.length - 1];
+    // Group A 30,000 + Group B 1,20,000 caps leave 50,000 for Travel EDGE
+    expect(last.p).toBeUndefined();
+    expect(last.pts).toBe(50000);
+    expect(w.plan.reduce((s, x) => s + x.pts, 0)).toBe(200000);
+  });
 });
 
 describe("example balances", () => {

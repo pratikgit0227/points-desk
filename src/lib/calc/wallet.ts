@@ -41,6 +41,42 @@ export function transferOptions(prog: Program, ctx: Ctx): TransferOption[] {
   return rows;
 }
 
+/** One step of a split: send `pts` card points to partner `p` (or redeem directly when p is absent). */
+export interface PlanStep {
+  p?: PartnerId;
+  ratio?: number;
+  grp?: AxisGroup;
+  pts: number;
+  /** Partner points received */
+  got: number;
+  worth: number;
+}
+
+/**
+ * Best way to use the whole balance. Fill the best-paying partner first; when a
+ * yearly cap stops it, move on to the next one that still has room. Whatever is
+ * left, or anything worth less than a direct redemption, is redeemed directly.
+ */
+export function splitPlan(prog: Program, options: TransferOption[], balance: number): PlanStep[] {
+  const steps: PlanStep[] = [];
+  const room: Partial<Record<AxisGroup, number>> = { ...prog.caps };
+  let mmRoom = prog.caps ? MILES_MORE_CAP : Infinity;
+  let left = balance;
+  for (const o of options) {
+    if (left <= 0 || o.per <= prog.base.v) break;
+    let pts = left;
+    if (o.grp && room[o.grp] !== undefined) pts = Math.min(pts, room[o.grp]!);
+    if (o.p === "milesmore") pts = Math.min(pts, mmRoom);
+    if (pts <= 0) continue;
+    steps.push({ p: o.p, ratio: o.ratio, grp: o.grp, pts, got: pts * o.ratio, worth: pts * o.per });
+    if (o.grp && room[o.grp] !== undefined) room[o.grp]! -= pts;
+    if (o.p === "milesmore") mmRoom -= pts;
+    left -= pts;
+  }
+  if (left > 0) steps.push({ pts: left, got: 0, worth: left * prog.base.v });
+  return steps;
+}
+
 export interface WalletSummary {
   prog: Program;
   balance: number;
@@ -49,6 +85,8 @@ export interface WalletSummary {
   best: TransferOption | undefined;
   /** True when redeeming directly beats (or equals) every partner */
   directWins: boolean;
+  /** How to use the whole balance, across caps */
+  plan: PlanStep[];
   bestWorth: number;
 }
 
@@ -57,6 +95,7 @@ export function walletSummary(prog: Program, ctx: Ctx): WalletSummary {
   const options = transferOptions(prog, ctx);
   const base = { per: prog.base.v, worth: balance * prog.base.v };
   const best = options[0];
+  const plan = splitPlan(prog, options, balance);
   return {
     prog,
     balance,
@@ -64,7 +103,8 @@ export function walletSummary(prog: Program, ctx: Ctx): WalletSummary {
     base,
     best,
     directWins: !best || base.per >= best.per,
-    bestWorth: Math.max(best ? best.worth : 0, base.worth),
+    plan,
+    bestWorth: plan.reduce((s, x) => s + x.worth, 0),
   };
 }
 
