@@ -4,11 +4,9 @@ import { useMemo } from "react";
 import { transferMatrix } from "@/lib/calc";
 import { PROGRAMS } from "@/lib/data";
 import { PartnerLink } from "./PartnerLink";
-import { useStore } from "./store";
 
 export function Matrix() {
-  const { filter } = useStore();
-  const rows = useMemo(() => transferMatrix(filter), [filter]);
+  const rows = useMemo(() => transferMatrix("all"), []);
   return (
     <section className="panel" aria-labelledby="mxH">
       <h2 id="mxH">Which card to use for each partner</h2>

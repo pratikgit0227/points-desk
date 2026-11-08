@@ -1,38 +1,20 @@
 import { BalanceImport } from "@/components/BalanceImport";
-import { BookingFinder } from "@/components/BookingFinder";
-import { CardPicker } from "@/components/CardPicker";
-import { DestinationFinder } from "@/components/DestinationFinder";
 import { FilterBar } from "@/components/FilterBar";
-import { GuideDialog } from "@/components/GuideDialog";
 import { Header } from "@/components/Header";
-import { TopBar } from "@/components/TopBar";
-import { Matrix } from "@/components/Matrix";
 import { MyCards } from "@/components/MyCards";
-import { Notes } from "@/components/Notes";
-import { StoreProvider } from "@/components/store";
 import { Trips } from "@/components/Trips";
-import { ValueEditor } from "@/components/ValueEditor";
 import { Wallets } from "@/components/Wallets";
 
-export default function Home() {
+/** My Wallet: your cards, what the points are worth, and where they can take you. */
+export default function WalletPage() {
   return (
-    <StoreProvider>
-      <TopBar />
-      <div className="wrap">
-        <Header />
-        <MyCards />
-        <BookingFinder />
-        <DestinationFinder />
-        <BalanceImport />
-        <FilterBar />
-        <Wallets />
-        <CardPicker />
-        <Trips />
-        <Matrix />
-        <ValueEditor />
-        <Notes />
-      </div>
-      <GuideDialog />
-    </StoreProvider>
+    <main className="wrap">
+      <Header />
+      <MyCards />
+      <BalanceImport />
+      <FilterBar />
+      <Wallets />
+      <Trips />
+    </main>
   );
 }
