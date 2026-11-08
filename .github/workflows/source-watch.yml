@@ -1,0 +1,56 @@
+name: Daily source watch
+
+# Every morning, check the pages our ratios, fees and award prices come from.
+# If one changed, open (or add to) a GitHub issue labelled "source-watch".
+# The site's data is then updated by a reviewed PR, never automatically.
+
+on:
+  schedule:
+    - cron: "30 3 * * *" # 09:00 IST
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: source-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Restore last run
+        uses: actions/cache/restore@v4
+        with:
+          path: .watch/state.json
+          key: source-watch-${{ github.run_id }}
+          restore-keys: source-watch-
+
+      - name: Check sources
+        run: node scripts/watch-sources.mjs .watch
+
+      - name: Save this run
+        uses: actions/cache/save@v4
+        with:
+          path: .watch/state.json
+          key: source-watch-${{ github.run_id }}
+
+      - name: Open or update the issue
+        if: hashFiles('.watch/report.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create source-watch --color 1769AA --description "A data source page changed" --force
+          n=$(gh issue list --label source-watch --state open --json number -q '.[0].number')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body-file .watch/report.md
+          else
+            gh issue create --title "Source pages changed: check ratios and fees" --label source-watch --body-file .watch/report.md
+          fi

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DESTINATIONS, findProgram, GUIDES, isOpenCard, MERCHANTS, PARTNERS, PROGRAMS, type PartnerId } from "@/lib/data";
-import { inr, ratioTxt } from "@/lib/format";
+import { inr, longDate, ratioTxt } from "@/lib/format";
 import {
   clearExamples,
   exampleBalances,
@@ -43,6 +43,7 @@ describe("format", () => {
   it("uses Indian digit grouping", () => expect(inr(123456)).toBe("₹1,23,456"));
   it("writes ratios as card : partner", () => {
     expect(ratioTxt(2)).toBe("1 : 2");
+    expect(longDate("2026-09-25")).toBe("25 Sep 2026");
     expect(ratioTxt(0.5)).toBe("2 : 1");
     expect(ratioTxt(0.33)).toBe("3.03 : 1");
   });

@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { totalWorth } from "@/lib/calc";
-import { inr } from "@/lib/format";
+import { DATA_CHECKED } from "@/lib/data";
+import { inr, longDate } from "@/lib/format";
 import { useStore } from "./store";
 
 export function Header() {
@@ -17,7 +18,7 @@ export function Header() {
         <div className="eyebrow">Credit card points · transfer partners · ₹ value</div>
         <h1>Points Desk</h1>
         <p className="muted small" style={{ margin: "6px 0 0", maxWidth: "62ch" }}>
-          Your card points balances, ranked against every transfer partner each card allows. Ratios checked 25 Sep 2026, including Axis&apos;s 23 Sep reshuffle.
+          Your card points balances, ranked against every transfer partner each card allows. Ratios verified {longDate(DATA_CHECKED)}, including Axis&apos;s 23 Sep reshuffle. Bank and source pages are checked every day, and the data is updated when they change.
         </p>
       </div>
       <div className="worth">

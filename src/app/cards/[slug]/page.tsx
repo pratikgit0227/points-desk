@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardFacts, cardSlug, changeDate, changesFor, destSlug, KIND_LABEL, programBySlug } from "@/lib/calc";
 import { applyLinkFor, CARD_INFO, DATA_CHECKED, GUIDES, PARTNERS, PROGRAMS } from "@/lib/data";
-import { fmt, inr, ratioTxt } from "@/lib/format";
+import { fmt, inr, longDate, ratioTxt } from "@/lib/format";
 import { ApplyLink, ApplyNote } from "@/components/ApplyLink";
 import { Fact } from "@/components/Fact";
 import { GuideButton, HaveCardButton } from "@/components/PageActions";
@@ -184,7 +184,7 @@ export default async function CardPage({ params }: PageProps<"/cards/[slug]">) {
       )}
 
       <p className="small muted">
-        Ratios and card facts checked {DATA_CHECKED}. Banks change these often, so check the bank&apos;s site before you transfer: transfers can&apos;t be reversed. Sources are on the{" "}
+        Ratios and card facts verified {longDate(DATA_CHECKED)}; source pages are checked daily. Banks change these often, so check the bank&apos;s site before you transfer: transfers can&apos;t be reversed. Sources are on the{" "}
         <Link href="/learn">Learn</Link> tab.
       </p>
     </main>
