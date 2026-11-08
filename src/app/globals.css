@@ -315,3 +315,6 @@ dialog#guide::backdrop{background:rgba(17,24,39,.45)}
 .latest.devaluation{border-left-color:var(--warn)}
 .latest:hover{border-color:var(--accent)}
 .latest .small{margin-left:auto;color:var(--accent);font-weight:600}
+a.btn{display:inline-block;border-radius:999px;border:1px solid var(--accent);background:var(--surface);color:var(--accent);padding:7px 14px;font-weight:600;font-size:.84rem;text-decoration:none;transition:.12s}
+a.btn:hover{background:var(--accent-soft)}
+.aff-note{margin:4px 0 0}

@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cardFacts, cardSlug, changeDate, changesFor, destSlug, KIND_LABEL, programBySlug } from "@/lib/calc";
-import { CARD_INFO, DATA_CHECKED, GUIDES, PARTNERS, PROGRAMS } from "@/lib/data";
+import { applyLinkFor, CARD_INFO, DATA_CHECKED, GUIDES, PARTNERS, PROGRAMS } from "@/lib/data";
 import { fmt, inr, ratioTxt } from "@/lib/format";
+import { ApplyLink, ApplyNote } from "@/components/ApplyLink";
 import { Fact } from "@/components/Fact";
 import { GuideButton, HaveCardButton } from "@/components/PageActions";
 
@@ -46,10 +47,16 @@ export default async function CardPage({ params }: PageProps<"/cards/[slug]">) {
         {ci?.why && <p className="muted">{ci.why}</p>}
         <div className="actions">
           <HaveCardButton cardKey={prog.key} />
+          <ApplyLink cardKey={prog.key} bank={prog.bank} />
           <Link href="/" className="small">
             Check my balance →
           </Link>
         </div>
+        {applyLinkFor(prog.key) && (
+          <p className="small muted aff-note">
+            <ApplyNote keys={[prog.key]} />
+          </p>
+        )}
       </header>
 
       <section className="facts">

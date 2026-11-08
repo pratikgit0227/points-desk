@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { cardSlug, pickCards } from "@/lib/calc";
 import { cardName } from "@/lib/data";
+import { ApplyLink, ApplyNote } from "./ApplyLink";
 import { fmt, inr } from "@/lib/format";
 import { useStore } from "./store";
 
@@ -49,7 +50,15 @@ export function CardPicker() {
                   <div>
                     <Link href={`/cards/${cardSlug(r.prog.key)}`}>{r.ci.label || cardName(r.prog)}</Link> {mine?.includes(r.prog.key) && <span className="pill mine">You have this</span>}
                   </div>
-                  <div className="small muted">{r.ci.status}</div>
+                  <div className="small muted">
+                    {r.ci.status}
+                    {!mine?.includes(r.prog.key) && (
+                      <>
+                        {" · "}
+                        <ApplyLink cardKey={r.prog.key} bank={r.prog.bank} compact />
+                      </>
+                    )}
+                  </div>
                 </td>
                 <td className="r num">{fmt(r.pts)}</td>
                 <td className="r num" title={"via " + r.air.name}>
@@ -78,7 +87,8 @@ export function CardPicker() {
       <p className="small muted" style={{ margin: 0 }}>
         {w
           ? `At ${inr(pick.spend)} a year, ${w.ci.label || w.prog.card} leaves you the most: ${inr(w.net)} after its fee. Year-1 welcome bonuses aren't counted. Axis Atlas is closed to new applicants, so it isn't in this list.`
-          : ""}
+          : ""}{" "}
+        <ApplyNote keys={rows.map((r) => r.prog.key)} />
       </p>
     </section>
   );
