@@ -30,3 +30,25 @@ export const SITES: Partial<Record<PartnerId, string>> = {
 
 /** Programmes that seats.aero can search for award space. */
 export const SEATS_AERO: readonly PartnerId[] = ["jal","krisflyer","aeroplan","turkish","flyingblue","qatar","ba","finnair","united","etihad","cathay","qantas","virgin","lifemiles","airindia"];
+
+/**
+ * Where to apply for each card. Today these are the banks' own pages and earn nothing.
+ * To add an affiliate link later, swap the href and set aff: true; the disclosure
+ * then shows next to the button automatically. Links never change any ranking.
+ */
+export interface ApplyLink {
+  href: string;
+  /** Points Desk may earn a commission from this link */
+  aff?: boolean;
+}
+
+export const APPLY_CHECKED = "2026-11-08";
+
+export const APPLY: Record<string, ApplyLink> = {
+  axis_magnus: { href: "https://www.axis.bank.in/cards/credit-card/axis-bank-magnus-credit-card" },
+  axis_horizon: { href: "https://www.axis.bank.in/cards/credit-card/axis-horizon-credit-card" },
+  hdfc_regalia_gold: { href: "https://www.hdfc.bank.in/credit-cards/regalia-gold-credit-card" },
+  amex_mr: { href: "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/" },
+  hsbc_travelone: { href: "https://www.hsbc.bank.in/credit-cards/products/travelone/" },
+  scapia: { href: "https://www.scapia.cards/" },
+};

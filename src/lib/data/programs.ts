@@ -1,5 +1,6 @@
 import type { PartnerId } from "./partners";
 import type { CardInfo, Program, Rate } from "./types";
+import { APPLY, type ApplyLink } from "./links";
 
 // Axis groups (Sept 2026)
 const AX_A: PartnerId[] = ["aeroplan", "flyingblue", "airindia", "ba", "cathay", "etihad", "ethiopian", "finnair", "jal", "qantas", "qatar", "krisflyer", "thai", "turkish", "united", "vietnam", "wyndham", "accor"];
@@ -97,4 +98,9 @@ export function canShowCard(key: string, mine: readonly string[] | null): boolea
 /** "HDFC Regalia Gold", "Amex Platinum Travel" etc. */
 export function cardName(prog: Program): string {
   return CARD_INFO[prog.key]?.label || prog.bank.replace(" Bank", "") + " " + prog.card;
+}
+
+/** The apply link for a card new applicants can get; none for closed or invite-only cards. */
+export function applyLinkFor(key: string): ApplyLink | undefined {
+  return isOpenCard(key) ? APPLY[key] : undefined;
 }
