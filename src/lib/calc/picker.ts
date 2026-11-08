@@ -1,4 +1,4 @@
-import { CARD_INFO, GUIDES, PARTNERS, PROGRAMS, type CardInfo, type PartnerId, type Program, type Spot } from "@/lib/data";
+import { CARD_INFO, GUIDES, isOpenCard, PARTNERS, PROGRAMS, type CardInfo, type PartnerId, type Program, type Spot } from "@/lib/data";
 import type { Values } from "./types";
 import { valueOf } from "./wallet";
 
@@ -30,7 +30,7 @@ export interface PickRow {
 /** Open cards ranked by what they leave you after the fee, for a yearly spend. */
 export function pickCards(spend: number, travelSpend: number, values: Values): PickRow[] {
   const travel = Math.min(travelSpend, spend);
-  return PROGRAMS.filter((p) => CARD_INFO[p.key]?.pick && CARD_INFO[p.key]?.earn)
+  return PROGRAMS.filter((p) => CARD_INFO[p.key]?.pick && CARD_INFO[p.key]?.earn && isOpenCard(p.key))
     .map((prog) => {
       const ci = CARD_INFO[prog.key];
       const earn = ci.earn!;

@@ -35,12 +35,12 @@ export const CATALOGUE: CatalogueCard[] = [
   { id: "hdfc-marriott", bank: "HDFC Bank", name: "Marriott Bonvoy", program: "marriott_hdfc", note: "Earns Marriott points directly" },
   { id: "hdfc-tata-neu", bank: "HDFC Bank", name: "Tata Neu Infinity", program: "tata_neu" },
   { id: "hdfc-diners-privilege", bank: "HDFC Bank", name: "Diners Club Privilege" },
-  // American Express (all earn Membership Rewards at the same ratios)
-  { id: "amex-plat-travel", bank: "American Express", name: "Platinum Travel", program: "amex_mr" },
-  { id: "amex-gold-charge", bank: "American Express", name: "Gold Charge", program: "amex_mr", note: "Same MR ratios", status: "Closed to new applicants", fee: 5310 },
-  { id: "amex-mrcc", bank: "American Express", name: "Membership Rewards Credit Card", program: "amex_mr", note: "Same MR ratios", status: "Closed to new applicants" },
-  { id: "amex-plat-reserve", bank: "American Express", name: "Platinum Reserve", program: "amex_mr", note: "Same MR ratios", status: "Closed to new applicants", fee: 11800 },
-  { id: "amex-plat-charge", bank: "American Express", name: "Platinum Charge", program: "amex_mr", note: "Same MR ratios", status: "Closed to new applicants", fee: 77880 },
+  // American Express: all earn Membership Rewards at the same ratios, but since 11 Oct 2026 each card has its own balance
+  { id: "amex-plat-travel", bank: "American Express", name: "Platinum Travel", program: "amex_mr", note: "Own MR balance since 11 Oct 2026" },
+  { id: "amex-gold-charge", bank: "American Express", name: "Gold Charge", program: "amex_mr", note: "Same MR ratios; own balance since 11 Oct", status: "New applications paused", fee: 5310 },
+  { id: "amex-mrcc", bank: "American Express", name: "Membership Rewards Credit Card", program: "amex_mr", note: "Same MR ratios; own balance since 11 Oct", status: "New applications paused" },
+  { id: "amex-plat-reserve", bank: "American Express", name: "Platinum Reserve", program: "amex_mr", note: "Same MR ratios; own balance since 11 Oct", status: "New applications paused", fee: 11800 },
+  { id: "amex-plat-charge", bank: "American Express", name: "Platinum Charge", program: "amex_mr", note: "Same MR ratios; own balance since 11 Oct", status: "New applications paused", fee: 77880 },
   // HSBC
   { id: "hsbc-travelone", bank: "HSBC", name: "TravelOne", program: "hsbc_travelone" },
   // ICICI Bank

@@ -8,6 +8,7 @@ function tagFor(status: string) {
   if (/closed/i.test(status)) return "closed";
   if (/invitation/i.test(status)) return "invite";
   if (/burgundy/i.test(status)) return "Burgundy only";
+  if (/paused/i.test(status)) return "paused";
   return "";
 }
 
@@ -17,7 +18,7 @@ export function useCardTitle() {
   return (prog: Program) => {
     const c = catalogueCard(cardAs[prog.key]) ?? defaultCardFor(prog.key);
     const ci = CARD_INFO[prog.key];
-    return { bank: c?.bank ?? prog.bank, name: c?.name ?? prog.card, status: c?.status ?? ci?.status, fee: c?.fee ?? ci?.fee };
+    return { bank: c?.bank ?? prog.bank, name: c?.name ?? prog.card, status: c?.status ?? ci?.status, fee: c?.fee ?? ci?.fee, note: ci?.note };
   };
 }
 

@@ -34,6 +34,40 @@ const AXIS_EDGE = ["axis_atlas", "axis_horizon", "axis_magnus", "axis_magnus_bur
  */
 const LIST: Change[] = [
   {
+    id: "amex-pooling-oct-2026",
+    date: "2026-10-11",
+    kind: "devaluation",
+    title: "Amex India stops pooling MR points across cards",
+    what:
+      "With Amex India's platform change, each Amex card now keeps its own Membership Rewards balance. Points earned on one card can no longer be moved to or combined with another Amex card, though transfers to airline and hotel partners work as before. The 50% fee waiver on the Membership Rewards Credit Card also ended. Reported by several blogs; Amex hasn't published a press release.",
+    todo: "If you hold two Amex cards, check each card's balance separately before planning a transfer: a 30,000-point award needs 30,000 on one card.",
+    cards: ["amex_mr"],
+    partners: [],
+    post: "Amex India no longer pools Membership Rewards across cards (from 11 Oct). Each card keeps its own balance, so check the points on the card you'll transfer from. Partner transfers are unchanged.",
+    sources: [
+      { label: "InsideFlyer", href: "https://www.insideflyer.com/posts/amex-india-changes-points-pooling-and-fee-waivers/" },
+      { label: "Trade Brains", href: "https://tradebrains.in/money/american-express-credit-card-changes-5-major-updates-coming-in-october-and-november-2026-12695292" },
+      { label: "TapNow", href: "https://tapnow.in/blogs/amex-india-membership-rewards-points-split" },
+    ],
+  },
+  {
+    id: "amex-applications-paused-2026",
+    date: "2026-08-01",
+    approx: true,
+    kind: "closure",
+    title: "Amex India pauses new card applications, including Platinum Travel",
+    what:
+      "Amex's own card pages now say it is temporarily pausing new card applications in India while it updates its card-issuing platform. Platinum Travel, Gold Charge and the Membership Rewards Credit Card had been closed to direct applications since 2025; reports say Platinum Charge and Platinum Reserve closed again in August 2026. Existing cardholders are not affected.",
+    todo: "If you were planning to get Platinum Travel for Marriott or Hilton transfers, look at HSBC TravelOne (1:1 to Marriott and Accor) on the Choose a card tab.",
+    cards: ["amex_mr"],
+    partners: [],
+    post: "Amex India has paused new card applications, Platinum Travel included, while it updates its platform. Existing cards keep working. For 1:1 hotel transfers, HSBC TravelOne is the open alternative.",
+    sources: [
+      { label: "Amex India (Platinum Travel page)", href: "https://www.americanexpress.com/in/credit-cards/platinum-travel-credit-card/" },
+      { label: "CardAdvisor", href: "https://cardadvisor.in/banks/american-express-credit-cards" },
+    ],
+  },
+  {
     id: "axis-reshuffle-sep-2026",
     date: "2026-09-23",
     kind: "devaluation",
