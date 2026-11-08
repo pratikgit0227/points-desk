@@ -7,6 +7,7 @@ import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
 import { PartnerLink } from "./PartnerLink";
 import { useStore } from "./store";
+import { TripBudget } from "./TripBudget";
 import { useCheapFare } from "./useCheapFare";
 
 const CABINS: { c: Cabin; label: string }[] = [
@@ -63,6 +64,7 @@ export function DestinationFinder() {
   const top = plans[0];
 
   return (
+    <>
     <section className="finder" aria-labelledby="destH">
       <div>
         <h2 id="destH">Travelling somewhere? Best card for the destination</h2>
@@ -268,6 +270,8 @@ export function DestinationFinder() {
         Award prices are one-way lows checked {dest.checked}; &quot;est.&quot; means estimated from nearby routes. Taxes are extra and seats at that price are limited. The cash fare is a rough starting value: type the real one. Check the seat on the airline&apos;s site before transferring: transfers can&apos;t be reversed. Sources: {dest.src}.
       </p>
     </section>
+    <TripBudget dest={dest} cabin={trip.cabin} fare={fare} fareNote={fareSource} />
+    </>
   );
 }
 
