@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
@@ -53,6 +54,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           {children}
           <GuideDialog />
         </StoreProvider>
+        {/* Anonymous, cookie-free page-view counts (Vercel Web Analytics, free tier) */}
+        <Analytics />
       </body>
     </html>
   );
