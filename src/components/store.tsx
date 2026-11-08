@@ -44,12 +44,17 @@ const PICK: PickState = { spend: 400000, travel: 60000 };
 const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline: 0, from: "DEL", date: "" };
 const NO_CASH: CashPrices = {};
 const NOT_SET: string[] | null = null;
+const NO_NAMES: Record<string, string> = {};
 
 interface Store extends Ctx {
   usingExample: boolean;
   /** Program keys of the cards the user holds; null until they pick */
   mine: string[] | null;
   toggleMine: (key: string) => void;
+  /** Which catalogue card the user picked for each programme (program key → card id) */
+  cardAs: Record<string, string>;
+  /** Add a card from the catalogue: holds its programme and remembers the card's name */
+  addCard: (cardId: string, program: string) => void;
   clearMine: () => void;
   setBalance: (key: string, n: number) => void;
   applyFound: (items: FoundBalance[]) => void;
@@ -86,6 +91,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [cashPrices, setCash] = usePersisted("pd_cash", NO_CASH);
   const [tripDate, setTripDate] = usePersisted("pd_date", "");
   const [mineRaw, setMine] = usePersisted("pd_mine", NOT_SET);
+  const [cardAs, setCardAs] = usePersisted("pd_card_as", NO_NAMES);
   const [guide, setGuide] = useState<PartnerId | null>(null);
 
   // An empty pick behaves like "not set"
@@ -124,6 +130,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       mine,
       toggleMine: (key) => setMine((prev) => (prev?.includes(key) ? prev.filter((k) => k !== key) : [...(prev ?? []), key])),
       clearMine: () => setMine(null),
+      cardAs,
+      addCard: (cardId, program) => {
+        setCardAs((prev) => ({ ...prev, [program]: cardId }));
+        setMine((prev) => (prev?.includes(program) ? prev : [...(prev ?? []), program]));
+      },
       setBalance,
       applyFound,
       setValue: (p, v) => setValues((prev) => ({ ...prev, [p]: Math.max(0, v || 0) })),
@@ -151,7 +162,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       openGuide: setGuide,
       closeGuide: () => setGuide(null),
     }),
-    [balances, values, filter, usingExample, mine, setMine, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
+    [balances, values, filter, usingExample, mine, setMine, cardAs, setCardAs, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

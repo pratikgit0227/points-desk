@@ -142,7 +142,8 @@ export function pool(p: string, balances: Balances): Pool {
     srcs.push({ prog, ratio, grp, bal, usable, pts: usable * ratio });
   }
   srcs.sort((a, b) => b.ratio - a.ratio);
-  return { srcs, total: srcs.reduce((s, x) => s + x.pts, 0), bestRatio: srcs[0] ?? null };
+  // Prefer a card the user has points on; else the best ratio of any card
+  return { srcs, total: srcs.reduce((s, x) => s + x.pts, 0), bestRatio: srcs.find((x) => x.bal > 0) ?? srcs[0] ?? null };
 }
 
 /** Example balances shown to a first-time visitor. */

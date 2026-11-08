@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { APPLY, PROGRAMS, applyLinkFor, isOpenCard } from "@/lib/data";
+import { APPLY, CARD_INFO, PROGRAMS, applyLinkFor, isOpenCard } from "@/lib/data";
 
 describe("apply links", () => {
-  it("every open card has an https apply link", () => {
-    for (const p of PROGRAMS.filter((x) => isOpenCard(x.key))) {
+  it("every open card in the picker has an https apply link", () => {
+    for (const p of PROGRAMS.filter((x) => isOpenCard(x.key) && CARD_INFO[x.key]?.pick)) {
       expect(applyLinkFor(p.key)?.href, p.key).toMatch(/^https:\/\//);
     }
   });

@@ -1,14 +1,16 @@
 "use client";
 
 import { walletSummary, type Balance } from "@/lib/calc";
-import { CARD_INFO, PARTNERS, PROGRAMS, type Program } from "@/lib/data";
+import { PARTNERS, PROGRAMS, type Program } from "@/lib/data";
 import { fmt, inr, ratioTxt } from "@/lib/format";
+import { useCardTitle } from "./MyCards";
 import { PartnerLink } from "./PartnerLink";
 import { useStore } from "./store";
 
 export function Wallets() {
   const { mine } = useStore();
-  const shown = mine ? PROGRAMS.filter((p) => mine.includes(p.key)) : PROGRAMS;
+  // Until the user adds cards, show only the example ones
+  const shown = mine ? PROGRAMS.filter((p) => mine.includes(p.key)) : PROGRAMS.filter((p) => p.ex > 0);
   return (
     <div className="wallets">
       {shown.map((prog) => (
@@ -29,8 +31,8 @@ function Wallet({ prog }: { prog: Program }) {
   const b = balances[prog.key] || { n: 0, src: "manual" };
   const w = walletSummary(prog, { balances, values, filter });
   const { best, base } = w;
-  const ci = CARD_INFO[prog.key];
   const tag = sourceTag(b);
+  const t = useCardTitle()(prog);
   const maxPer = Math.max(base.per, ...w.options.map((r) => r.per), 0.01);
   const rows = [...w.options.map((r) => ({ ...r, isBase: false as const })), { isBase: true as const, per: base.per, worth: base.worth }].sort((x, y) => y.per - x.per);
 
@@ -38,11 +40,11 @@ function Wallet({ prog }: { prog: Program }) {
     <article className={"wallet" + (b.n ? "" : " zero")}>
       <div className="w-head">
         <div>
-          <div className="w-bank">{prog.bank}</div>
-          <h3>{prog.card}</h3>
-          {ci && (
-            <div className={"w-status" + (/closed/i.test(ci.status) ? " closed" : "")}>
-              {ci.status + (ci.fee ? " · fee " + inr(ci.fee) + "/yr" : "")}
+          <div className="w-bank">{t.bank}</div>
+          <h3>{t.name}</h3>
+          {t.status && (
+            <div className={"w-status" + (/closed/i.test(t.status) ? " closed" : "")}>
+              {t.status + (t.fee ? " · fee " + inr(t.fee) + "/yr" : "")}
             </div>
           )}
         </div>
@@ -57,7 +59,7 @@ function Wallet({ prog }: { prog: Program }) {
           step="1"
           inputMode="numeric"
           placeholder="0"
-          aria-label={`${prog.card} balance in ${prog.unit}`}
+          aria-label={`${t.name} balance in ${prog.unit}`}
           value={b.n || ""}
           onChange={(e) => setBalance(prog.key, +e.target.value)}
         />
