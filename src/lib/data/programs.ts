@@ -15,7 +15,7 @@ function axisTable(aRate: number, lowRate: number, bRate: number, overrides: Par
   return Object.assign(t, overrides);
 }
 
-/** Miles & More has its own 2,00,000 a year cap on Axis cards. */
+/** Miles & More has its own cap on Axis cards: 2,00,000 Miles & More miles received a year. */
 export const MILES_MORE_CAP = 200000;
 
 /** Axis Select / Privilege: 10:1, AirAsia and SpiceJet 5:1 (Apr 2026 table). Partners moved to the lower
@@ -33,10 +33,10 @@ export const PROGRAMS: Program[] = [
    r: axisTable(2, 0.5, 2, {indigo:[0.5,"B"], milesmore:[1,"B"], orchid:[1,"B"], radisson:[1,"B"]})},
   {key:"axis_magnus_burgundy", bank:"Axis Bank", card:"Magnus for Burgundy", unit:"EDGE Reward points", ex:0,
    base:{v:0.2, label:"Travel EDGE booking"}, caps:{A:200000,B:800000},
-   r: axisTable(0.8, 0.4, 0.8)},
+   r: axisTable(0.8, 0.4, 0.8, {indigo:[0.4,"B"]})},
   {key:"axis_magnus", bank:"Axis Bank", card:"Magnus", unit:"EDGE Reward points", ex:0,
-   base:{v:0.2, label:"Travel EDGE booking"}, caps:{A:100000,B:400000},
-   r: axisTable(0.4, 0.2, 0.4)},
+   base:{v:0.2, label:"Travel EDGE booking (est.)"}, caps:{A:100000,B:400000},
+   r: axisTable(0.4, 0.2, 0.4, {indigo:[0.2,"B"]})},
   {key:"hdfc_infinia", bank:"HDFC Bank", card:"Infinia / Diners Club Black", unit:"Reward Points", ex:112400,
    base:{v:1.0, label:"SmartBuy flights & hotels"},
    r:{aeroplan:[.5],airasia:[1],airindia:[.5],lifemiles:[.5],ba:[.5],cathay:[.5],etihad:[.5],finnair:[1],flyingblue:[1],qatar:[.5],vietnam:[1],thai:[.5],turkish:[.5],united:[.5],spicejet:[1],krisflyer:[1],accor:[.5],itc:[.5],marriott:[.5],ihg:[1],radisson:[1],wyndham:[1]}},
@@ -51,7 +51,7 @@ export const PROGRAMS: Program[] = [
    r:{airindia:[1],flyingblue:[1],airasia:[3],ba:[1],etihad:[1],jal:[1],qatar:[1],qantas:[1],krisflyer:[1],thai:[1],turkish:[.5],united:[.5],vietnam:[1],accor:[1],ihg:[1],marriott:[1],wyndham:[1]}},
   {key:"axis_horizon", bank:"Axis Bank", card:"Horizon", unit:"EDGE Miles", ex:0,
    base:{v:1.0, label:"Travel EDGE booking (est.)"}, caps:{A:100000,B:400000},
-   r: axisTable(1, 0.5, 1, {indigo:[0.5,"B"], milesmore:[0.5,"B"], orchid:[0.5,"B"], radisson:[0.5,"B"]})},
+   r: axisTable(1, 0.5, 1, {indigo:[0.5,"B"]})},
   {key:"scapia", bank:"Federal Bank", card:"Scapia", unit:"Scapia coins", ex:0,
    base:{v:0.2, label:"Travel bookings in the Scapia app"}, r:{}},
   // Added Nov 2026 (sources: CardMaven, LiveFromALounge, Magnify, CardInsider, CardAdvisor, bank pages)
@@ -95,21 +95,21 @@ export function findProgram(key: string): Program | undefined {
  */
 export const CARD_INFO: Record<string, CardInfo> = {
   axis_atlas:{status:"Closed to new applicants (2026)", fee:5900, earn:{travel:5, other:2}},
-  axis_magnus_burgundy:{status:"Needs an Axis Burgundy relationship", fee:35400},
-  axis_magnus:{status:"Open", fee:14750, earn:{travel:6, other:6}, est:true},
+  axis_magnus_burgundy:{status:"Needs an Axis Burgundy relationship", fee:35400, waive:3000000, earn:{travel:6, other:6}, est:true},
+  axis_magnus:{status:"Open", fee:14750, waive:2500000, earn:{travel:6, other:6}, est:true},
   hdfc_infinia:{status:"Mostly by invitation", fee:14750, waive:1000000, earn:{travel:3.33, other:3.33}, est:true},
-  hdfc_regalia_gold:{status:"Open", fee:2950, waive:400000, earn:{travel:2.67, other:2.67}, pick:true,
+  hdfc_regalia_gold:{status:"Open", fee:2950, waive:400000, earn:{travel:2.5, other:2.5}, pick:true,
     why:"Lowest fee of the transfer cards, waived at ₹4L a year. Transfers are 2:1 or 3:1, so points are best used on SmartBuy."},
   amex_mr:{status:"New applications paused (Amex India, Nov 2026)",
     note:"Since 11 Oct 2026 each Amex card keeps its own MR balance: points can no longer be moved between your Amex cards. Enter the balance of the card you will transfer from.", fee:5900, earn:{travel:2, other:2}, bonus:[{at:400000, pts:10000}], pick:true,
     label:"Amex Platinum Travel",
     why:"10,000 bonus points at ₹4L and a ₹20,000 Taj voucher at ₹7L (Sept 2026 milestones). Marriott 1:1 and Hilton 1:1.5; airlines are 2:1."},
-  hsbc_travelone:{status:"Open", fee:5899, waive:800000, earn:{travel:4, other:2}, pick:true,
+  hsbc_travelone:{status:"Open", fee:5899, waive:800000, earn:{travel:4, other:2}, bonus:[{at:1200000, pts:10000}], pick:true,
     why:"1:1 to KrisFlyer, JAL, Air India, Qatar/BA Avios, Accor, Marriott and IHG, with instant transfers. The widest 1:1 list of any open card."},
   axis_horizon:{status:"Open", fee:3540, earn:{travel:5, other:2}, bonus:[{at:0, pts:1500, label:"renewal EDGE Miles from year 2"}], pick:true,
     why:"The open replacement for Atlas: EDGE Miles 1:1 to KrisFlyer, JAL, Aeroplan, Turkish, Air India and Hilton. 5,000 EDGE Miles welcome bonus in year 1."},
   scapia:{status:"Open, lifetime free", fee:0, earn:{travel:20, other:10}, pick:true,
-    why:"No fee and 0% forex markup. No transfers: coins pay for bookings in the Scapia app (5 coins = ₹1), so there's nothing to learn."},
+    why:"No fee and 0% forex markup. No transfers: coins pay for bookings in the Scapia app (5 coins = ₹1), so there's nothing to learn. International spends, utilities and insurance earn no coins."},
   axis_olympus:{status:"By invitation", fee:23600, label:"Axis Olympus"},
   axis_select:{status:"Open", fee:3540, label:"Axis Select / Privilege"},
   icici_air:{status:"By invitation", fee:14749, label:"ICICI Emeralde Private Metal"},
