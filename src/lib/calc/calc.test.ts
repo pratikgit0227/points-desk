@@ -124,9 +124,17 @@ describe("pool", () => {
     expect(pl.bestRatio!.prog.key).toBe("axis_atlas");
     expect(pl.total).toBe(10000 * 2 + 5000 * 1);
   });
-  it("caps Miles & More at 2,00,000 card points on Axis", () => {
+  it("caps Miles & More at 2,00,000 miles received on Axis", () => {
+    // Burgundy is 5:4, so 2,00,000 miles = 2,50,000 card points (under its 8,00,000 Group B cap)
     const pl = pool("milesmore", { axis_magnus_burgundy: { n: 900000, src: "manual" } });
-    expect(pl.srcs.find((s) => s.prog.key === "axis_magnus_burgundy")!.usable).toBe(200000);
+    expect(pl.srcs.find((s) => s.prog.key === "axis_magnus_burgundy")!.usable).toBe(250000);
+  });
+  it("uses Axis's standard IndiGo and Horizon rates", () => {
+    const r = (k: string, p: string) => PROGRAMS.find((x) => x.key === k)!.r[p][0];
+    expect(r("axis_magnus", "indigo")).toBe(0.2);
+    expect(r("axis_magnus_burgundy", "indigo")).toBe(0.4);
+    expect(r("axis_horizon", "milesmore")).toBe(1);
+    expect(r("axis_atlas", "milesmore")).toBe(1);
   });
 });
 

@@ -9,7 +9,8 @@ export function valueOf(values: Values, p: string): number {
 export function usableFor(prog: Program, p: string, grp: AxisGroup | undefined, bal: number) {
   let usable = bal;
   if (grp && prog.caps) usable = Math.min(usable, prog.caps[grp]);
-  if (p === "milesmore" && prog.caps) usable = Math.min(usable, MILES_MORE_CAP);
+  // The Miles & More cap counts miles received, so convert it to card points
+  if (p === "milesmore" && prog.caps) usable = Math.min(usable, Math.floor(MILES_MORE_CAP / (prog.r[p]?.[0] ?? 1)));
   return { usable, capped: usable < bal };
 }
 

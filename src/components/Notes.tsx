@@ -2,6 +2,7 @@ const SOURCES = [
   { href: "https://cardexpress.in/articles/axis-edge-transfer-partners-group-a-group-b", label: "Card Express (Axis, 23 Sep)" },
   { href: "https://livefromalounge.com/axis-bank-travel-edge-rewards-reshuffle-2026/", label: "Live From A Lounge" },
   { href: "https://magnify.club/guides/axis-bank-group-a-group-b-transfer-partners/", label: "Magnify (Axis groups, caps)" },
+  { href: "https://pointsmath.com/axis-bank-transfer-partners/", label: "PointsMath (Axis, 24 Sep)" },
   { href: "https://pointsmath.com/hdfc-bank-points-transfer-partners/", label: "PointsMath (HDFC, 15 Aug)" },
   { href: "https://magnify.club/guides/amex-india-transfer-partners/", label: "Magnify (Amex, 18 Aug)" },
 ];
@@ -39,7 +40,7 @@ export function Notes() {
         Award prices are the lowest (saver / off-peak) one-way prices seen in 2026. Seats at that price are limited, taxes and fuel surcharges are extra, and airlines change charts without notice. Find the seat on the airline&apos;s site first, then transfer.
       </div>
       <div>
-        Card facts (fees, earn rates, milestones) checked 25 Sep 2026: <Links items={CARD_FACTS} />. HSBC and Horizon direct-redemption values are estimates.
+        Card facts (fees, earn rates, milestones) re-checked 8 Nov 2026: <Links items={CARD_FACTS} />. HSBC and Horizon direct-redemption values are estimates.
       </div>
       <div>
         Sources: <Links items={SOURCES} />
