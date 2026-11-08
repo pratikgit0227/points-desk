@@ -28,6 +28,14 @@ export const SITES: Partial<Record<PartnerId, string>> = {
   wyndham:"https://www.wyndhamhotels.com/", itc:"https://www.itchotels.com/", radisson:"https://www.radissonhotels.com/"
 };
 
+/** Travelpayouts partner id. Public: it is also in the page's site script. */
+export const TP_MARKER = "597231";
+
+/** Aviasales one-way economy search, tagged with the Travelpayouts partner id. date is YYYY-MM-DD. */
+export function aviasalesLink(from: string, to: string, date: string): string {
+  return `https://www.aviasales.com/search/${from}${date.slice(8, 10)}${date.slice(5, 7)}${to}1?marker=${TP_MARKER}`;
+}
+
 /** Programmes that seats.aero can search for award space. */
 export const SEATS_AERO: readonly PartnerId[] = ["jal","krisflyer","aeroplan","turkish","flyingblue","qatar","ba","finnair","united","etihad","cathay","qantas","virgin","lifemiles","airindia"];
 

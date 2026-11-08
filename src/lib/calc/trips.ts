@@ -1,4 +1,4 @@
-import { CODES, FARES, GUIDES, PARTNERS, SEATS_AERO, SITES, type FareSnapshot, type PartnerId, type Spot } from "@/lib/data";
+import { aviasalesLink, CODES, FARES, GUIDES, PARTNERS, SEATS_AERO, SITES, type FareSnapshot, type PartnerId, type Spot } from "@/lib/data";
 import type { CashPrices, Ctx } from "./types";
 import { pool, type Pool } from "./wallet";
 
@@ -55,6 +55,8 @@ export function tripList(ctx: Ctx): TripItem[] {
 export interface FareLink {
   label: string;
   href: string;
+  /** Carries the Travelpayouts partner id: shown with * and rel="sponsored" */
+  aff?: boolean;
 }
 
 type Cabin = "first" | "business" | "premiumeconomy" | "economy";
@@ -84,6 +86,8 @@ export function cashFareLinks(from: string, to: string, date: string, cabin: str
     { label: "Google Flights", href: "https://www.google.com/travel/flights?q=" + encodeURIComponent(`one way ${CABIN_TXT[cab]}flights from ${from} to ${to} on ${date}`) },
   ];
   if (haveCodes) {
+    // The link opens an economy search; other cabins are picked on Aviasales.
+    out.unshift({ label: cab === "economy" ? "Aviasales" : "Aviasales (pick cabin)", href: aviasalesLink(from, to, date), aff: true });
     out.push({ label: "Skyscanner", href: `https://www.skyscanner.co.in/transport/flights/${from.toLowerCase()}/${to.toLowerCase()}/${y.slice(2)}${m}${d}/?adultsv2=1&cabinclass=${cab}&rtn=0` });
     out.push({ label: "MakeMyTrip", href: `https://www.makemytrip.com/flight/search?itinerary=${from}-${to}-${d}/${m}/${y}&tripType=O&paxType=A-1_C-0_I-0&intl=true&cabinClass=${MMT_CABIN[cab]}` });
   }

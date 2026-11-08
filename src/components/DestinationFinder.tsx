@@ -24,8 +24,8 @@ function Links({ links }: { links: FareLink[] }) {
   return (
     <span style={{ display: "inline-flex", flexWrap: "wrap", gap: "2px 10px" }}>
       {links.map((l) => (
-        <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)", fontWeight: 600 }}>
-          {l.label} ↗
+        <a key={l.label} href={l.href} target="_blank" rel={(l.aff ? "sponsored " : "") + "noopener noreferrer"} title={l.aff ? "Affiliate link" : undefined} style={{ color: "var(--accent)", fontWeight: 600 }}>
+          {l.label} ↗{l.aff && "*"}
         </a>
       ))}
     </span>

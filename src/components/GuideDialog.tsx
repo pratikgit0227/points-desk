@@ -207,8 +207,8 @@ function SpotRow({ p, i, s, date, total, best }: { p: PartnerId; i: number; s: S
         {s.note && <div className="small muted">{s.note}</div>}
         <div className="small" style={{ display: "flex", flexWrap: "wrap", gap: "4px 10px", marginTop: 4 }}>
           {fareLinks(p, i, s, date).map((l) => (
-            <a key={l.label} href={l.href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--accent)" }}>
-              {l.label} ↗
+            <a key={l.label} href={l.href} target="_blank" rel={(l.aff ? "sponsored " : "") + "noopener noreferrer"} title={l.aff ? "Affiliate link" : undefined} style={{ color: "var(--accent)" }}>
+              {l.label} ↗{l.aff && "*"}
             </a>
           ))}
         </div>
