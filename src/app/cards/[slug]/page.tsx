@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardFacts, cardSlug, destSlug, programBySlug } from "@/lib/calc";
+import { cardFacts, cardSlug, changeDate, changesFor, destSlug, KIND_LABEL, programBySlug } from "@/lib/calc";
 import { CARD_INFO, DATA_CHECKED, GUIDES, PARTNERS, PROGRAMS } from "@/lib/data";
 import { fmt, inr, ratioTxt } from "@/lib/format";
 import { Fact } from "@/components/Fact";
@@ -160,6 +160,19 @@ export default async function CardPage({ params }: PageProps<"/cards/[slug]">) {
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {changesFor([prog.key]).length > 0 && (
+        <section className="panel" aria-labelledby="changesH">
+          <h2 id="changesH">Recent changes</h2>
+          <ul className="notes small">
+            {changesFor([prog.key]).map((c) => (
+              <li key={c.id}>
+                <b>{changeDate(c)}</b> · {KIND_LABEL[c.kind]} · <Link href={`/changes#${c.id}`}>{c.title}</Link>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

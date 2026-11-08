@@ -6,3 +6,4 @@ export * from "./picker";
 export * from "./matrix";
 export * from "./destinations";
 export * from "./pages";
+export * from "./changes";
