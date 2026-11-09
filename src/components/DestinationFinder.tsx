@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
-import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, matchDestinations, merchantFor, planDestination, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
+import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, matchDestinations, merchantFor, planDestination, priceBasis, PRICE_TAG, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
 import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
+import { FareDetails } from "./FareDetails";
 import { PartnerLink } from "./PartnerLink";
 import { useStore } from "./store";
 import { TripBudget } from "./TripBudget";
@@ -52,7 +53,9 @@ export function DestinationFinder() {
   const foundPrice = found.status === "ok" ? found.fare.price : 0;
   const fare = trip.fare || foundPrice || dest.fare[trip.cabin];
   const fareSource = trip.fare ? "Your fare" : foundPrice ? "Cheapest found on Aviasales" : "Rough estimate: type the real fare";
-  const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values, mine), [dest, trip.cabin, fare, balances, values, mine]);
+  const pax = trip.pax || 1;
+  const party = pax > 1 ? `${pax} travellers` : "1 traveller";
+  const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values, mine, pax), [dest, trip.cabin, fare, balances, values, mine, pax]);
   const airline = dest.nonstop[trip.airline] || dest.nonstop[0];
   const payAll = useMemo(
     () => (airline ? rankCardsForBooking({ merchant: merchantFor(airline), amount: fare, values, mine }) : []),
@@ -87,7 +90,7 @@ export function DestinationFinder() {
           />
         </label>
         <label>
-          One-way cash fare (₹)
+          One-way cash fare per person (₹)
           <input type="number" min="0" step="500" inputMode="numeric" value={fare || ""} onChange={(e) => setTrip({ fare: Math.max(0, +e.target.value || 0) })} />
           <span className="small muted">
             {fareSource}
@@ -135,6 +138,16 @@ export function DestinationFinder() {
           Date
           <input type="date" value={date} min={today} onChange={(e) => setTrip({ date: e.target.value, fare: 0 })} style={{ width: "auto", padding: "5px 8px" }} />
         </label>
+        <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Travellers
+          <select value={pax} onChange={(e) => setTrip({ pax: +e.target.value || 1 })} style={{ padding: "5px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--surface)" }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+        </label>
         {date && (
           <span className="small">
             <b>Live cash fares:</b> <Links links={cashFareLinks(trip.from, dest.code, date, cabinName)} />
@@ -153,7 +166,7 @@ export function DestinationFinder() {
         <div className="f-win" style={{ gridTemplateColumns: "1fr" }}>
           <div>
             <div className="tag">
-              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way ·{" "}
+              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way · {party} ·{" "}
               <Link href={`/fly/${destSlug(dest)}`}>{dest.name} page to share ↗</Link>
             </div>
             <h3>
@@ -162,9 +175,13 @@ export function DestinationFinder() {
             <div className="big">
               {fmt(top.cardPts)} {top.best!.prog.unit}
             </div>
+            <div className="small muted">
+              {pax > 1 ? `Total for ${party} (${fmt(top.each)} ${PARTNERS[top.p].n} points each) · ` : ""}
+              {priceBasis(top.r).label} · seats not checked
+            </div>
             <p className="small">
               {top.r.pricing === "revenue"
-                ? `${PARTNERS[top.p].n} points pay the fare directly: about ${fmt(top.miles)} points for a ${inr(fare)} ticket.`
+                ? `${PARTNERS[top.p].n} points pay the fare directly: about ${fmt(top.miles)} points for ${pax > 1 ? `${pax} tickets at ${inr(fare)} each` : `a ${inr(fare)} ticket`}.`
                 : `Transfer at ${ratioTxt(top.best!.ratio)} for ${fmt(top.miles)} ${PARTNERS[top.p].n} points${top.r.confidence === "low" ? " (estimated price)" : ""}, then book ${top.r.airline}: ${top.r.route}.`}{" "}
               {top.canBook ? "Your cards cover it." : `You need ${fmt(top.short)} more partner points.`}
             </p>
@@ -176,6 +193,8 @@ export function DestinationFinder() {
             )}
             {top.capLimited && <p className="small capnote">This needs more than the card&apos;s yearly Group {top.best!.grp} transfer cap allows.</p>}
             {top.r.note && <p className="small muted">{top.r.note}</p>}
+            {top.r.pricing !== "revenue" && <BeforeTransfer plan={top} pax={pax} cabin={cabinName} date={date} links={date ? awardLinks(top.p, trip.from, dest.code, date) : []} />}
+            <FareDetails airline={top.r.airline} cabin={trip.cabin} award={top.r.pricing !== "revenue"} />
           </div>
         </div>
       ) : (
@@ -189,12 +208,12 @@ export function DestinationFinder() {
               <tr>
                 <th>Programme</th>
                 <th>Airline &amp; route</th>
-                <th className="r">Partner pts</th>
+                <th className="r">Partner pts{pax > 1 ? `, ${pax} people` : ""}</th>
                 <th className="r">Best card</th>
                 <th className="r">Card pts</th>
                 <th>You can book</th>
                 <th className="r">₹ / partner pt</th>
-                <th>Check seats</th>
+                <th>Seats for {pax}: not checked</th>
               </tr>
             </thead>
             <tbody>
@@ -210,10 +229,16 @@ export function DestinationFinder() {
                       {pl.r.route}
                       {pl.r.pricing === "dynamic" ? " · price varies by date" : pl.r.pricing === "revenue" ? " · points pay the fare" : ""}
                     </div>
+                    <FareDetails airline={pl.r.airline} cabin={trip.cabin} award={pl.r.pricing !== "revenue"} />
                   </td>
                   <td className="r num" title={pl.r.note}>
                     {fmt(pl.miles)}
-                    {pl.r.confidence === "low" && <span className="small muted"> est.</span>}
+                    {pax > 1 && <div className="small muted">{fmt(pl.each)} each</div>}
+                    <div>
+                      <span className="pill basis" title={priceBasis(pl.r).label}>
+                        {PRICE_TAG[priceBasis(pl.r).kind]}
+                      </span>
+                    </div>
                   </td>
                   <td className="r">
                     {cardLabel(pl)} <span className="small muted">({ratioTxt(pl.best!.ratio)})</span>
@@ -241,7 +266,7 @@ export function DestinationFinder() {
               </button>
             ))}
           </div>
-          {airline && <p className="small muted" style={{ margin: "0 0 8px" }}>Nonstop from {airline.from}.</p>}
+          {airline && <p className="small muted" style={{ margin: "0 0 8px" }}>Nonstop from {airline.from}. Earnings below are for one {inr(fare)} ticket.</p>}
           <div className="f-list">
             {payRows.map((r) => (
               <div className="f-row" key={r.prog!.key} style={{ gridTemplateColumns: "1fr auto" }}>
@@ -267,7 +292,7 @@ export function DestinationFinder() {
       )}
 
       <p className="small muted">
-        Award prices are one-way lows checked {dest.checked}; &quot;est.&quot; means estimated from nearby routes. Taxes are extra and seats at that price are limited. The cash fare is a rough starting value: type the real one. Check the seat on the airline&apos;s site before transferring: transfers can&apos;t be reversed. Sources: {dest.src}.
+        Points cover {party}, one-way, {trip.cabin === "biz" ? "business" : "economy"}; the cash fare is per person. Award prices are one-way lows checked {dest.checked}: &quot;chart&quot; is the published chart, &quot;lowest seen&quot; moves by date, &quot;est.&quot; is estimated from nearby routes. No seat is checked or held here. Taxes are extra and seats at that price are limited. The cash fare is a rough starting value: type the real one. Check the seat on the airline&apos;s site before transferring: transfers can&apos;t be reversed. Sources: {dest.src}.
       </p>
     </section>
     <TripBudget dest={dest} cabin={trip.cabin} fare={fare} fareNote={fareSource} />
@@ -309,10 +334,41 @@ function CheapestFare({ lookup, cabin, code }: { lookup: ReturnType<typeof useCh
           {[f.airline && f.airline + (f.flightNumber ? " " + f.flightNumber : ""), f.transfers ? `${f.transfers} stop${f.transfers > 1 ? "s" : ""}` : "nonstop", hrs].filter(Boolean).join(" · ")}
           {" · found by Aviasales searches in the last 2 days; the price can change. Used for the ₹-per-point maths below."}
         </div>
+        <div className="small capnote">Cheapest fares often leave out checked bags: compare the bag rules before comparing prices.</div>
+        {f.airline && <FareDetails code={f.airline} cabin={cabin} />}
       </div>
       <a className="val" href={f.link} target="_blank" rel="noopener noreferrer sponsored" style={{ color: "var(--accent)", fontWeight: 700 }}>
         Book ↗
       </a>
+    </div>
+  );
+}
+
+/** Specific steps before moving points: find the seats, check what the award includes, then transfer. */
+function BeforeTransfer({ plan, pax, cabin, date, links }: { plan: RoutePlan; pax: number; cabin: string; date: string; links: FareLink[] }) {
+  const prog = PARTNERS[plan.p].n;
+  const card = plan.best!;
+  return (
+    <div className="pre-transfer small" role="note">
+      <h4>Before you transfer</h4>
+      <ol>
+        <li>
+          Find {pax > 1 ? `${pax} seats` : "the seat"} in {cabin.toLowerCase()}
+          {date ? ` on ${date}` : ""} at {fmt(plan.each)} {prog} points{pax > 1 ? " each" : ""}
+          {links.length > 0 && (
+            <>
+              {" "}
+              (<Links links={links} />)
+            </>
+          )}
+          . Prices on this page are not live.
+        </li>
+        <li>Check the taxes and what the award includes: checked bag, cabin bag, seat choice and change fees (details below).</li>
+        <li>
+          Only then move {fmt(plan.cardPts)} {card.prog.unit} from {shortBank(card.prog.bank)} {card.prog.card} at {ratioTxt(card.ratio)}
+          {plan.capLimited ? `; that is more than the yearly Group ${card.grp} cap allows, so split it across cards or years` : ""}. Transfers can&apos;t be reversed, and some take a day or more, so the price can change while you wait.
+        </li>
+      </ol>
     </div>
   );
 }

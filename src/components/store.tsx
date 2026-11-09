@@ -26,6 +26,8 @@ export interface TripState {
   from: string;
   /** Travel date (YYYY-MM-DD); empty means 60 days out */
   date: string;
+  /** Travellers (adults); 0 or missing in older saved state = not set */
+  pax?: number;
 }
 
 export interface PickState {
