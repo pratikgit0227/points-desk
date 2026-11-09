@@ -104,9 +104,10 @@ export function TripBudget({
   fare: number;
   fareNote: string;
 }) {
-  const { balances, values, usingExample } = useStore();
+  const { balances, values, usingExample, trip, setTrip } = useStore();
   const [saved, setPrefs] = usePersisted("pd_budget", PREFS);
-  const b = { ...PREFS, ...saved };
+  // Travellers live with the trip so the finder and the budget always cover the same party
+  const b = { ...PREFS, ...saved, travellers: trip.pax || 1 };
   const set = (patch: Partial<BudgetPrefs>) =>
     setPrefs((prev) => ({ ...PREFS, ...prev, ...patch }));
   const awardTax = b.tax || TAX_GUESS[cabin];
@@ -161,7 +162,7 @@ export function TripBudget({
           value={b.travellers}
           min={1}
           max={9}
-          onChange={(n) => set({ travellers: n || 1 })}
+          onChange={(n) => setTrip({ pax: n || 1 })}
         />
         <label>
           Trip

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardSlug, destinationBySlug, destinationFacts, destSlug } from "@/lib/calc";
+import { cardSlug, destinationBySlug, destinationFacts, destSlug, priceBasis } from "@/lib/calc";
 import { DESTINATIONS, PARTNERS, cardName } from "@/lib/data";
 import { fmt, inr, ratioTxt } from "@/lib/format";
 import { Fact } from "@/components/Fact";
+import { FareDetails } from "@/components/FareDetails";
 import { GuideButton, PlanTripButton } from "@/components/PageActions";
 
 export function generateStaticParams() {
@@ -25,8 +26,6 @@ export async function generateMetadata({ params }: PageProps<"/fly/[slug]">): Pr
     alternates: { canonical: `/fly/${destSlug(d)}` },
   };
 }
-
-const PRICING: Record<string, string> = { fixed: "Fixed chart", dynamic: "Price varies by date", revenue: "Points pay the fare" };
 
 export default async function FlyPage({ params }: PageProps<"/fly/[slug]">) {
   const d = destinationBySlug((await params).slug);
@@ -90,9 +89,9 @@ export default async function FlyPage({ params }: PageProps<"/fly/[slug]">) {
                     <td style={{ whiteSpace: "normal", minWidth: 200 }}>
                       <div>{x.r.airline}</div>
                       <div className="small muted">
-                        {x.r.route} · {PRICING[x.r.pricing]}
-                        {x.r.confidence === "low" ? " · estimated" : ""}
+                        {x.r.route} · {priceBasis(x.r).label}
                       </div>
+                      <FareDetails airline={x.r.airline} cabin="eco" award={x.r.pricing !== "revenue"} />
                     </td>
                     <td className="r num">{x.r.pricing === "revenue" ? "Fare in pts" : x.r.eco ? fmt(x.r.eco) : "—"}</td>
                     <td className="r num">{x.r.pricing === "revenue" ? "—" : x.r.biz ? fmt(x.r.biz) : "—"}</td>
@@ -153,7 +152,7 @@ export default async function FlyPage({ params }: PageProps<"/fly/[slug]">) {
       )}
 
       <p className="small muted">
-        Award prices are one-way lows checked {d.checked}. Taxes are extra and seats at these prices are limited. Check the seat on the airline&apos;s site before you transfer: transfers can&apos;t be
+        Award prices are per person, one-way, checked {d.checked}; no seat is checked or held here. Bag rules shown are each airline&apos;s general economy rule, not what a ticket includes. Taxes are extra and seats at these prices are limited. Check the seat on the airline&apos;s site before you transfer: transfers can&apos;t be
         reversed. Sources: {d.src}.
       </p>
     </main>
