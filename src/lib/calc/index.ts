@@ -11,3 +11,4 @@ export * from "./budget";
 export * from "./fareinfo";
 export * from "./plans";
 export * from "./photos";
+export * from "./alerts";

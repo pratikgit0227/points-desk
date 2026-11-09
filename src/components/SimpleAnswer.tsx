@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { beatsValue, destPhoto, routeOrigin, TAX_GUESS, type FareLink, type RoutePlan } from "@/lib/calc";
+import { destPhoto, routeOrigin, TAX_GUESS, valueOf, type FareLink, type RoutePlan } from "@/lib/calc";
 import { PARTNERS, type Cabin, type Destination } from "@/lib/data";
 import { fmt, inr, shortBank } from "@/lib/format";
 import { FareDetails } from "./FareDetails";
@@ -58,7 +58,8 @@ export function SimpleAnswer({ dest, from, fromName, cabin, pax, date, fare, pla
   const cash = fare * pax;
   const revenue = plan?.r.pricing === "revenue";
   const tax = plan && !revenue ? TAX_GUESS[cabin] * pax : 0;
-  const good = plan ? revenue || beatsValue(plan, values) : false;
+  // Good value after the taxes you still pay, against the user's value per point
+  const good = plan ? revenue || (cash - tax) / plan.miles >= valueOf(values, plan.p) : false;
   const card = plan?.best ? `${shortBank(plan.best.prog.bank)} ${plan.best.prog.card}` : "";
   const prog = plan ? PARTNERS[plan.p].n : "";
   const elsewhere = plan ? routeOrigin(plan.r.route, from, fromName) : null;

@@ -21,7 +21,7 @@ export default function PlanPage() {
           <h1>Plan a trip</h1>
           <ViewSwitch />
         </div>
-        <p className="muted">Where you&apos;re going or what you&apos;re booking: the best way to use points, and the best card to pay with if you buy the ticket. Or browse <Link href="/fly">all destinations</Link>.</p>
+        <p className="muted">Where you&apos;re going or what you&apos;re booking: the best way to use points, and the best card to pay with if you buy the ticket. Or browse <Link href="/fly">all destinations</Link> and <Link href="/trips">trips by creators</Link>.</p>
       </div>
       <SharedTripBanner />
       <MyCards />

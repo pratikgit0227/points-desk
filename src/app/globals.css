@@ -469,3 +469,17 @@ main.wrap{position:relative;z-index:1}
 .fly-hero p{margin:0;font-size:15px}
 .credits{columns:2 320px;margin:0;padding-left:18px}
 .credits li{break-inside:avoid;margin:2px 0}
+
+/* watched plans */
+.watch-toggle{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.watch-toggle input{width:auto;margin-top:3px}
+.plan-alerts{border:1px solid var(--accent);background:var(--accent-soft);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.plan-alerts ul{margin:0;padding-left:18px}
+
+/* creator trips */
+.calc-in{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.calc-in label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink-2)}
+.calc-in select{padding:9px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font:inherit}
+.checklist{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:6px}
+.checklist li::before{content:"☐ ";color:var(--accent);font-weight:700}
+a.trip{display:flex}
