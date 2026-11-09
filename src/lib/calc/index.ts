@@ -9,3 +9,4 @@ export * from "./pages";
 export * from "./changes";
 export * from "./budget";
 export * from "./fareinfo";
+export * from "./plans";

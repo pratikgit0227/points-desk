@@ -77,3 +77,19 @@ export function priceBasis(r: AwardRoute): { kind: PriceKind; label: string } {
 }
 
 export const PRICE_TAG: Record<PriceKind, string> = { chart: "chart", lowest: "lowest seen", estimate: "est.", revenue: "fare" };
+
+const SOUTH = ["BLR", "MAA", "HYD", "COK", "CCJ", "TRV"];
+
+/**
+ * Where an award route leaves from, against the user's departure airport.
+ * fromYou: true = leaves from their city, false = from elsewhere, null = route text is general ("Indian cities").
+ */
+export function routeOrigin(route: string, from: string, fromName: string): { cities: string; fromYou: boolean | null } {
+  const cities = route.split("→")[0].trim();
+  if (!route.includes("→")) return { cities: "", fromYou: null };
+  const c = cities.toLowerCase();
+  if (/indian (cities|metros)|many|most/.test(c)) return { cities, fromYou: null };
+  if (c.includes(fromName.toLowerCase())) return { cities, fromYou: true };
+  if (c.includes("south india") && SOUTH.includes(from)) return { cities, fromYou: true };
+  return { cities, fromYou: false };
+}

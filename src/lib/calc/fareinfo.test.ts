@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BAG_STALE_DAYS, BAGGAGE, DATA_CHECKED, DESTINATIONS } from "@/lib/data";
 import { planDestination } from "./destinations";
-import { airlineByCode, airlinesIn, bagGuides, bagShort, isStale, priceBasis } from "./fareinfo";
+import { airlineByCode, airlinesIn, bagGuides, bagShort, isStale, priceBasis, routeOrigin } from "./fareinfo";
 
 const ids = (t: string) => airlinesIn(t).map((a) => a.id);
 
@@ -108,5 +108,16 @@ describe("planDestination for a party", () => {
     const ai = plans.find((x) => x.p === "airindia")!;
     expect(ai.canBook).toBe(false);
     expect(ai.short).toBe(ai.miles - 40000);
+  });
+});
+
+describe("routeOrigin", () => {
+  it("knows when a route leaves from the user's city", () => {
+    expect(routeOrigin("Delhi / Mumbai → Singapore, nonstop", "BOM", "Mumbai")).toEqual({ cities: "Delhi / Mumbai", fromYou: true });
+    expect(routeOrigin("Delhi / Mumbai → Singapore, nonstop", "BLR", "Bengaluru").fromYou).toBe(false);
+    expect(routeOrigin("South India / Mumbai → Kuwait", "COK", "Kochi").fromYou).toBe(true);
+  });
+  it("stays neutral for general route text", () => {
+    expect(routeOrigin("Indian cities → Singapore, nonstop", "BLR", "Bengaluru").fromYou).toBeNull();
   });
 });
