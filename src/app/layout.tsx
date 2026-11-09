@@ -11,12 +11,12 @@ const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["40
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://suiteandseat.vercel.app"),
-  title: { default: "Points Desk", template: "%s · Points Desk" },
-  openGraph: { siteName: "Points Desk", locale: "en_IN", type: "website" },
+  title: { default: "Suite & Seat", template: "%s · Suite & Seat" },
+  openGraph: { siteName: "Suite & Seat", locale: "en_IN", type: "website" },
   twitter: { card: "summary_large_image", creator: "@pratik0227" },
   description:
     "Credit card reward points calculator by CA Pratik Bharda: Axis EDGE Miles, HDFC, Amex and HSBC transfer partners ranked by rupee value, with where-to-fly guides and a card picker.",
-  applicationName: "Points Desk",
+  applicationName: "Suite & Seat",
   // Google Search Console ownership check (public code, safe to commit)
   verification: { google: "98JxIFvSlK8eNpqWDmdXLyV4zj_7vfQJQqdVe_t1gys" },
   authors: [{ name: "CA Pratik Bharda", url: "https://x.com/pratik0227" }],
