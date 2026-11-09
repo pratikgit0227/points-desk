@@ -8,6 +8,7 @@ export * from "./fares";
 export * from "./destinations";
 export * from "./baggage";
 export * from "./photos";
+export * from "./creators";
 
 /** Date the transfer ratios and card facts were last checked. */
 export const DATA_CHECKED = "2026-11-08";

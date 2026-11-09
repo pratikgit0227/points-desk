@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { planAlerts, type TripPlan } from "@/lib/calc";
+import { usePersisted } from "@/lib/persisted";
+import { useStore } from "./store";
 import { TABS, tabIndex } from "./tabs";
 
 /** Dock icon shapes (Material Icons, Apache 2.0). */
@@ -18,9 +21,15 @@ const PATHS: Record<(typeof TABS)[number]["icon"], string> = {
  * on hover, the open one has a dot, and pages slide towards the side of the
  * icon you pick (like switching desktops).
  */
+const NO_PLANS: TripPlan[] = [];
+
 export function Dock() {
   const path = usePathname();
   const here = tabIndex(path);
+  const { mine } = useStore();
+  const [plans] = usePersisted("pd_plans", NO_PLANS);
+  // Watched plans with something new: a count on the Plan icon
+  const news = plans.filter((p) => p.watch && planAlerts(p, p.watch, mine).length).length;
   return (
     <nav className="dock" aria-label="Sections">
       {TABS.map((t, i) => {
@@ -31,7 +40,12 @@ export function Dock() {
             <span className="dock-tip" aria-hidden="true">
               {t.label}
             </span>
-            <span className="dock-ico">
+            <span className="dock-ico" style={{ position: "relative" }}>
+              {t.icon === "plane" && news > 0 && (
+                <span className="dock-badge" aria-label={`${news} saved plan${news > 1 ? "s" : ""} with changes`}>
+                  {news}
+                </span>
+              )}
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d={PATHS[t.icon]} fill="currentColor" />
               </svg>

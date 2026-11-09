@@ -8,7 +8,7 @@ export const TABS = [
 
 /** Index of the section a path belongs to (destination pages sit under Plan, changes under Learn). */
 export function tabIndex(path: string): number {
-  if (path.startsWith("/fly") || path.startsWith("/plan")) return 1;
+  if (path.startsWith("/fly") || path.startsWith("/plan") || path.startsWith("/trips")) return 1;
   if (path.startsWith("/cards")) return 2;
   if (path.startsWith("/learn") || path.startsWith("/changes")) return 3;
   return path === "/" ? 0 : -1;

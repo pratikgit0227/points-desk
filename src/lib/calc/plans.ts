@@ -2,6 +2,7 @@ import { z } from "zod";
 import { DESTINATIONS, PARTNERS, PROGRAMS, canShowCard, type AwardRoute, type Cabin, type PartnerId, type Program } from "@/lib/data";
 import { planDestination } from "./destinations";
 import { priceBasis } from "./fareinfo";
+import type { PlanSnap } from "./alerts";
 import type { Balances, Values } from "./types";
 import { valueOf } from "./wallet";
 
@@ -44,6 +45,8 @@ export interface TripPlan extends TripCore {
   /** Private: only shared if the user ticks it */
   notes: string;
   updated: string;
+  /** Set when the user watches the plan: prices and ratios as they were */
+  watch?: PlanSnap;
 }
 
 export const MAX_PICKS = 3;
@@ -211,8 +214,20 @@ export function recommend(rows: CompareRow[], values: Values = {}): { row: Compa
   const ok = rows
     .filter((r) => r.kind === "transfer" && !r.short && !r.capLimited && r.partner && r.partnerPts && r.saved / r.partnerPts >= valueOf(values, r.partner))
     .sort((a, b) => b.saved - a.saved);
-  if (ok[0]) return { row: ok[0], why: `you have the points, and each ${PARTNERS[ok[0].partner!].n} point saves ₹${(ok[0].saved / ok[0].partnerPts).toFixed(2)}, more than your set value` };
-  return { row: cash, why: "none of the picked points options is both covered by your balances and worth more than your set point values" };
+  if (ok[0]) return { row: ok[0], why: `you have the points, and after taxes each ${PARTNERS[ok[0].partner!].n} point saves ₹${(ok[0].saved / ok[0].partnerPts).toFixed(2)}, more than your set value` };
+  // Explain the closest miss in rupees
+  const near = rows.filter((r) => r.kind === "transfer" && r.partner && r.partnerPts).sort((a, b) => b.saved / b.partnerPts - a.saved / a.partnerPts)[0];
+  if (near) {
+    const per = near.saved / near.partnerPts;
+    const set = valueOf(values, near.partner!);
+    const why = near.short
+      ? `${near.title} would save ₹${Math.round(near.saved).toLocaleString("en-IN")}, but you're short by ${near.short.toLocaleString("en-IN")} points`
+      : near.capLimited
+        ? `${near.title} needs more than the card's yearly transfer cap`
+        : `${near.title} saves ₹${Math.round(near.saved).toLocaleString("en-IN")}, but after taxes that's ₹${per.toFixed(2)} a point, below your ₹${set.toFixed(2)} value, so paying cash keeps the points for a better trip`;
+    return { row: cash, why };
+  }
+  return { row: cash, why: "no points option is picked for this trip" };
 }
 
 function fmtInr(n: number) {

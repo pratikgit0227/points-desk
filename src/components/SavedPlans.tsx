@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useSyncExternalStore } from "react";
-import { compareOptions, decodeShare, encodeShare, recommend, shareFields, STATUSES, type CompareRow, type PlanStatus, type SharedTrip, type TripCore, type TripPlan } from "@/lib/calc";
+import { compareOptions, decodeShare, encodeShare, planAlerts, recommend, shareFields, snapshot, STATUSES, type CompareRow, type PlanStatus, type SharedTrip, type TripCore, type TripPlan } from "@/lib/calc";
 import { DESTINATIONS, ORIGINS } from "@/lib/data";
 import { fmt, inr, longDate } from "@/lib/format";
 import { usePersisted } from "@/lib/persisted";
@@ -23,7 +23,7 @@ function pickCore(c: TripCore): TripCore {
   return { dest: c.dest, from: c.from, date: c.date, flex: c.flex, cabin: c.cabin, pax: c.pax, legs: c.legs, fare: c.fare, picks: [...c.picks] };
 }
 
-function tripOf(c: TripCore | SharedTrip): Partial<TripState> {
+export function tripOf(c: TripCore | SharedTrip): Partial<TripState> {
   const d = DESTINATIONS.find((x) => x.id === c.dest);
   return { id: c.dest, q: d?.name ?? "", from: c.from, date: c.date, flex: c.flex, cabin: c.cabin, pax: c.pax, legs: c.legs, fare: c.fare, picks: c.picks, airline: 0 };
 }
@@ -39,6 +39,16 @@ function summary(c: TripCore): string {
     c.date ? longDate(c.date) + (c.flex ? ` ± ${c.flex} days` : "") : "date not set",
     "from " + (ORIGINS.find((o) => o.code === c.from)?.name ?? c.from),
   ].join(" · ");
+}
+
+/** Adds a trip to the browser's saved plans; returns the new plan's id. */
+export function useAddPlan() {
+  const [, setPlans] = usePersisted("pd_plans", NO_PLANS);
+  return (core: TripCore, name: string, notes = "") => {
+    const id = newId();
+    setPlans((prev) => [{ ...pickCore(core), id, name, status: "exploring", notes, updated: today() }, ...prev]);
+    return id;
+  };
 }
 
 function scrollToFinder() {
@@ -57,7 +67,16 @@ export function SavedPlans() {
   const open = plans.find((p) => p.id === active);
   const changed = open ? JSON.stringify(pickCore(open)) !== JSON.stringify(core) : false;
 
-  const update = (id: string, patch: Partial<TripPlan>) => setPlans((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch, updated: today() } : p)));
+  const update = (id: string, patch: Partial<TripPlan>) =>
+    setPlans((prev) =>
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        const next = { ...p, ...patch, updated: today() };
+        // A watched plan whose trip changed starts watching the new options
+        if (next.watch && patch.picks) next.watch = snapshot(next, today());
+        return next;
+      }),
+    );
 
   const save = () => {
     const id = newId();
@@ -118,6 +137,7 @@ export function SavedPlans() {
                 scrollToFinder();
               }}
               onChange={(patch) => update(p.id, patch)}
+              cards={mine}
               onDelete={() => {
                 setPlans((prev) => prev.filter((x) => x.id !== p.id));
                 if (active === p.id) setActive("");
@@ -130,7 +150,7 @@ export function SavedPlans() {
   );
 }
 
-function CompareTable({ rows, recKey, cabin }: { rows: CompareRow[]; recKey?: string; cabin: TripCore["cabin"] }) {
+export function CompareTable({ rows, recKey, cabin }: { rows: CompareRow[]; recKey?: string; cabin: TripCore["cabin"] }) {
   const cash = rows.find((r) => r.kind === "cash")?.cashPaid ?? 0;
   return (
     <div className="tbl-wrap">
@@ -187,8 +207,9 @@ function CompareTable({ rows, recKey, cabin }: { rows: CompareRow[]; recKey?: st
   );
 }
 
-function PlanCard({ plan, on, onOpen, onChange, onDelete }: { plan: TripPlan; on: boolean; onOpen: () => void; onChange: (patch: Partial<TripPlan>) => void; onDelete: () => void }) {
+function PlanCard({ plan, on, onOpen, onChange, onDelete, cards }: { plan: TripPlan; on: boolean; onOpen: () => void; onChange: (patch: Partial<TripPlan>) => void; onDelete: () => void; cards: readonly string[] | null }) {
   const [sharing, setSharing] = useState(false);
+  const alerts = plan.watch ? planAlerts(plan, plan.watch, cards) : [];
   const [confirmDel, setConfirmDel] = useState(false);
   return (
     <div className={"plan-card" + (on ? " on" : "")}>
@@ -206,6 +227,39 @@ function PlanCard({ plan, on, onOpen, onChange, onDelete }: { plan: TripPlan; on
         {summary(plan)} · {plan.picks.length} option{plan.picks.length === 1 ? "" : "s"} picked · saved {longDate(plan.updated)}
       </div>
       <textarea aria-label="Notes" rows={2} placeholder="Notes (private unless you choose to share them)" value={plan.notes} maxLength={500} onChange={(e) => onChange({ notes: e.target.value })} />
+      <label className="small watch-toggle">
+        <input type="checkbox" checked={Boolean(plan.watch)} disabled={!plan.picks.length} onChange={(e) => onChange({ watch: e.target.checked ? snapshot(plan, today()) : undefined })} />
+        <span>
+          <b>Watch for changes</b>{" "}
+          <span className="muted">
+            {plan.picks.length
+              ? `${plan.watch ? `since ${longDate(plan.watch.at)}` : "off"}: award prices, transfer ratios and rule changes for the picked options. Checked when you open this site; nothing is sent to you or to us.`
+              : "Tick \"Compare\" on at least one option first."}
+          </span>
+        </span>
+      </label>
+      {alerts.length > 0 && (
+        <div className="plan-alerts" role="status">
+          <b>🔔 Since you saved ({alerts.length}):</b>
+          <ul>
+            {alerts.map((a, i) => (
+              <li key={i}>
+                {a.change ? (
+                  <>
+                    <a href={`/changes#${a.change.id}`}>{a.text}</a> <span className="muted">({a.change.date})</span>
+                  </>
+                ) : (
+                  a.text
+                )}
+              </li>
+            ))}
+          </ul>
+          <div className="small muted">Check the seat and price on the programme&apos;s site before you transfer.</div>
+          <button type="button" onClick={() => onChange({ watch: snapshot(plan, today()) })}>
+            Got it, keep watching
+          </button>
+        </div>
+      )}
       <div className="plan-actions">
         <button type="button" className={on ? "" : "primary"} onClick={onOpen}>
           {on ? "Open now" : "Open"}
