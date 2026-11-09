@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { planBudget, type BudgetItem } from "@/lib/calc";
+import { planBudget, TAX_GUESS, type BudgetItem } from "@/lib/calc";
 import {
   PARTNERS,
   type Cabin,
@@ -32,8 +32,6 @@ const PREFS: BudgetPrefs = {
   hotelP: "any",
   hotelPts: 0,
 };
-/** Typical award taxes and fees per person, one-way, from India (rough; varies by airline). */
-const TAX_GUESS: Record<Cabin, number> = { eco: 3500, biz: 9000 };
 const HOTELS = (Object.keys(PARTNERS) as PartnerId[]).filter(
   (p) => PARTNERS[p].k === "hotel",
 );
@@ -107,7 +105,7 @@ export function TripBudget({
   const { balances, values, usingExample, trip, setTrip } = useStore();
   const [saved, setPrefs] = usePersisted("pd_budget", PREFS);
   // Travellers live with the trip so the finder and the budget always cover the same party
-  const b = { ...PREFS, ...saved, travellers: trip.pax || 1 };
+  const b = { ...PREFS, ...saved, travellers: trip.pax || 1, legs: trip.legs || 2 };
   const set = (patch: Partial<BudgetPrefs>) =>
     setPrefs((prev) => ({ ...PREFS, ...prev, ...patch }));
   const awardTax = b.tax || TAX_GUESS[cabin];
@@ -168,7 +166,7 @@ export function TripBudget({
           Trip
           <select
             value={b.legs}
-            onChange={(e) => set({ legs: +e.target.value === 1 ? 1 : 2 })}
+            onChange={(e) => setTrip({ legs: +e.target.value === 1 ? 1 : 2 })}
           >
             <option value={2}>Return</option>
             <option value={1}>One-way</option>

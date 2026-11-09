@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useSyncExternalStore } from "react";
-import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, matchDestinations, merchantFor, planDestination, priceBasis, PRICE_TAG, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
+import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, matchDestinations, merchantFor, optionKey, routeOrigin, planDestination, priceBasis, PRICE_TAG, togglePick, MAX_PICKS, rankCardsForBooking, type FareLink, type RoutePlan } from "@/lib/calc";
 import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
 import { FareDetails } from "./FareDetails";
@@ -54,6 +54,9 @@ export function DestinationFinder() {
   const fare = trip.fare || foundPrice || dest.fare[trip.cabin];
   const fareSource = trip.fare ? "Your fare" : foundPrice ? "Cheapest found on Aviasales" : "Rough estimate: type the real fare";
   const pax = trip.pax || 1;
+  const fromName = ORIGINS.find((o) => o.code === trip.from)?.name ?? trip.from;
+  const leg = `${fromName} (${trip.from}) → ${dest.name} (${dest.code})`;
+  const picks = trip.picks ?? [];
   const party = pax > 1 ? `${pax} travellers` : "1 traveller";
   const plans = useMemo(() => planDestination(dest, trip.cabin, fare, balances, values, mine, pax), [dest, trip.cabin, fare, balances, values, mine, pax]);
   const airline = dest.nonstop[trip.airline] || dest.nonstop[0];
@@ -75,7 +78,17 @@ export function DestinationFinder() {
           Flying to Kuwait, Bali or London, even on an airline that isn&apos;t a transfer partner? See every way to get there with points, and which card to pay with if you buy the ticket.
         </p>
       </div>
-      <div className="f-in">
+      <div className="f-in trip-in">
+        <label>
+          From
+          <select value={trip.from} onChange={(e) => setTrip({ from: e.target.value, fare: 0 })}>
+            {ORIGINS.map((o) => (
+              <option key={o.code} value={o.code}>
+                {o.name} ({o.code})
+              </option>
+            ))}
+          </select>
+        </label>
         <label>
           Where to?
           <input
@@ -125,18 +138,16 @@ export function DestinationFinder() {
 
       <div className="live-prices" style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px", alignItems: "center", padding: "10px 12px", borderRadius: 10, background: "var(--accent-soft)" }}>
         <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          From
-          <select value={trip.from} onChange={(e) => setTrip({ from: e.target.value, fare: 0 })} style={{ padding: "5px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--surface)" }}>
-            {ORIGINS.map((o) => (
-              <option key={o.code} value={o.code}>
-                {o.name} ({o.code})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           Date
           <input type="date" value={date} min={today} onChange={(e) => setTrip({ date: e.target.value, fare: 0 })} style={{ width: "auto", padding: "5px 8px" }} />
+        </label>
+        <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          Dates
+          <select value={trip.flex || 0} onChange={(e) => setTrip({ flex: +e.target.value || 0 })} style={{ padding: "5px 8px", borderRadius: 8, border: "1px solid var(--line)", background: "var(--surface)" }}>
+            <option value={0}>Exact</option>
+            <option value={3}>± 3 days</option>
+            <option value={7}>± 7 days</option>
+          </select>
         </label>
         <label className="small" style={{ display: "flex", alignItems: "center", gap: 6 }}>
           Travellers
@@ -166,7 +177,7 @@ export function DestinationFinder() {
         <div className="f-win" style={{ gridTemplateColumns: "1fr" }}>
           <div>
             <div className="tag">
-              {dest.name}, {dest.country} · {trip.cabin === "biz" ? "business" : "economy"} one-way · {party} ·{" "}
+              {leg} · {trip.cabin === "biz" ? "business" : "economy"} one-way · {party} ·{" "}
               <Link href={`/fly/${destSlug(dest)}`}>{dest.name} page to share ↗</Link>
             </div>
             <h3>
@@ -192,8 +203,9 @@ export function DestinationFinder() {
               </p>
             )}
             {top.capLimited && <p className="small capnote">This needs more than the card&apos;s yearly Group {top.best!.grp} transfer cap allows.</p>}
+            <OriginNote route={top.r.route} from={trip.from} fromName={fromName} />
             {top.r.note && <p className="small muted">{top.r.note}</p>}
-            {top.r.pricing !== "revenue" && <BeforeTransfer plan={top} pax={pax} cabin={cabinName} date={date} links={date ? awardLinks(top.p, trip.from, dest.code, date) : []} />}
+            {top.r.pricing !== "revenue" && <BeforeTransfer plan={top} pax={pax} cabin={cabinName} date={date} flex={trip.flex || 0} links={date ? awardLinks(top.p, trip.from, dest.code, date) : []} />}
             <FareDetails airline={top.r.airline} cabin={trip.cabin} award={top.r.pricing !== "revenue"} />
           </div>
         </div>
@@ -201,6 +213,12 @@ export function DestinationFinder() {
         <p className="small muted">No transfer partner on your cards reaches {dest.name} in this cabin. Pay cash with the card below.</p>
       )}
 
+      {plans.length > 0 && (
+        <p className="small muted" style={{ margin: 0 }}>
+          Your trip: <b>{leg}</b>. Each row shows the route the price was seen on; rows marked ✈ leave from another city.
+          {" "}Tick up to {MAX_PICKS} options to compare them with paying cash in <a href="#plansH">Your trip plans</a> below.
+        </p>
+      )}
       {plans.length > 0 && (
         <div className="tbl-wrap">
           <table>
@@ -222,6 +240,9 @@ export function DestinationFinder() {
                   <td>
                     <PartnerLink p={pl.p} />
                     {pl.best?.grp && <span className="grp">{pl.best.grp}</span>}
+                    <label className="small cmp-pick">
+                      <input type="checkbox" checked={picks.includes(optionKey(pl.r))} onChange={() => setTrip({ picks: togglePick(picks, optionKey(pl.r)) })} /> Compare
+                    </label>
                   </td>
                   <td style={{ whiteSpace: "normal", minWidth: 200 }}>
                     <div>{pl.r.airline}</div>
@@ -229,6 +250,7 @@ export function DestinationFinder() {
                       {pl.r.route}
                       {pl.r.pricing === "dynamic" ? " · price varies by date" : pl.r.pricing === "revenue" ? " · points pay the fare" : ""}
                     </div>
+                    <OriginNote route={pl.r.route} from={trip.from} fromName={fromName} />
                     <FareDetails airline={pl.r.airline} cabin={trip.cabin} award={pl.r.pricing !== "revenue"} />
                   </td>
                   <td className="r num" title={pl.r.note}>
@@ -345,7 +367,7 @@ function CheapestFare({ lookup, cabin, code }: { lookup: ReturnType<typeof useCh
 }
 
 /** Specific steps before moving points: find the seats, check what the award includes, then transfer. */
-function BeforeTransfer({ plan, pax, cabin, date, links }: { plan: RoutePlan; pax: number; cabin: string; date: string; links: FareLink[] }) {
+function BeforeTransfer({ plan, pax, cabin, date, flex, links }: { plan: RoutePlan; pax: number; cabin: string; date: string; flex: number; links: FareLink[] }) {
   const prog = PARTNERS[plan.p].n;
   const card = plan.best!;
   return (
@@ -354,7 +376,7 @@ function BeforeTransfer({ plan, pax, cabin, date, links }: { plan: RoutePlan; pa
       <ol>
         <li>
           Find {pax > 1 ? `${pax} seats` : "the seat"} in {cabin.toLowerCase()}
-          {date ? ` on ${date}` : ""} at {fmt(plan.each)} {prog} points{pax > 1 ? " each" : ""}
+          {date ? ` on ${date}${flex ? ` or up to ${flex} days either side (search each date)` : ""}` : ""} at {fmt(plan.each)} {prog} points{pax > 1 ? " each" : ""}
           {links.length > 0 && (
             <>
               {" "}
@@ -369,6 +391,17 @@ function BeforeTransfer({ plan, pax, cabin, date, links }: { plan: RoutePlan; pa
           {plan.capLimited ? `; that is more than the yearly Group ${card.grp} cap allows, so split it across cards or years` : ""}. Transfers can&apos;t be reversed, and some take a day or more, so the price can change while you wait.
         </li>
       </ol>
+    </div>
+  );
+}
+
+/** Flags an award route that leaves from a different city than the one picked in From. */
+function OriginNote({ route, from, fromName }: { route: string; from: string; fromName: string }) {
+  const o = routeOrigin(route, from, fromName);
+  if (o.fromYou !== false) return null;
+  return (
+    <div className="small capnote">
+      ✈ Leaves {o.cities}, not {fromName}: add a flight there, or search {from} on the programme&apos;s site (price may differ).
     </div>
   );
 }

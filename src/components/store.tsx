@@ -28,6 +28,12 @@ export interface TripState {
   date: string;
   /** Travellers (adults); 0 or missing in older saved state = not set */
   pax?: number;
+  /** 1 = one-way, 2 = return; missing = return */
+  legs?: 1 | 2;
+  /** Dates flexible by ± days */
+  flex?: number;
+  /** Award options picked to compare (optionKey) */
+  picks?: string[];
 }
 
 export interface PickState {
