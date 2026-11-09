@@ -31,8 +31,8 @@ export function shareImage({ eyebrow, title, big, sub }: { eyebrow: string; titl
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 28 }}>
           <div style={{ display: "flex" }}>
-            <span style={{ fontWeight: 700 }}>Points&nbsp;</span>
-            <span style={{ fontWeight: 700, color: "#0b6e3d" }}>Desk</span>
+            <span style={{ fontWeight: 700 }}>Suite &amp;&nbsp;</span>
+            <span style={{ fontWeight: 700, color: "#0b6e3d" }}>Seat</span>
             <span style={{ color: "#6b7280" }}>&nbsp;· by CA Pratik Bharda</span>
           </div>
           <div style={{ color: "#6b7280" }}>suiteandseat.vercel.app</div>
