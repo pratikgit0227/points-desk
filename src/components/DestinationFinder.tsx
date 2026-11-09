@@ -6,7 +6,9 @@ import { awardLinks, beatsValue, cashFareLinks, defaultTripDate, destSlug, match
 import { DESTINATIONS, ORIGINS, PARTNERS, type Cabin } from "@/lib/data";
 import { fmt, inr, ratioTxt, shortBank } from "@/lib/format";
 import { FareDetails } from "./FareDetails";
+import { Icon } from "./Icons";
 import { PartnerLink } from "./PartnerLink";
+import { SimpleAnswer } from "./SimpleAnswer";
 import { useStore } from "./store";
 import { TripBudget } from "./TripBudget";
 import { useCheapFare } from "./useCheapFare";
@@ -40,7 +42,7 @@ function cardLabel(plan: RoutePlan) {
 
 /** "I'm travelling to Kuwait": best card to use points, and best card to pay cash. */
 export function DestinationFinder() {
-  const { trip, setTrip, balances, values, mine } = useStore();
+  const { trip, setTrip, balances, values, mine, view } = useStore();
   const hits = useMemo(() => matchDestinations(trip.q), [trip.q]);
   const id = hits.length && !hits.some((d) => d.id === trip.id) ? hits[0].id : trip.id;
   const dest = DESTINATIONS.find((d) => d.id === id) || DESTINATIONS[0];
@@ -71,9 +73,11 @@ export function DestinationFinder() {
 
   return (
     <>
-    <section className="finder" aria-labelledby="destH">
+    <section className="finder deco deco-plane" aria-labelledby="destH">
       <div>
-        <h2 id="destH">Travelling somewhere? Best card for the destination</h2>
+        <h2 id="destH" className="with-icon">
+          <Icon name="plane" size={20} /> Travelling somewhere? Best card for the destination
+        </h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>
           Flying to Kuwait, Bali or London, even on an airline that isn&apos;t a transfer partner? See every way to get there with points, and which card to pay with if you buy the ticket.
         </p>
@@ -165,7 +169,7 @@ export function DestinationFinder() {
           </span>
         )}
       </div>
-      <CheapestFare lookup={found} cabin={trip.cabin} code={dest.code} />
+      <CheapestFare lookup={found} cabin={trip.cabin} code={dest.code} simple={view === "simple"} />
 
       {dest.note && (
         <p className="small capnote" role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, background: "var(--brass-soft)", border: "1px solid var(--brass-line)" }}>
@@ -173,6 +177,21 @@ export function DestinationFinder() {
         </p>
       )}
 
+      {view === "simple" ? (
+        <SimpleAnswer
+          dest={dest}
+          from={trip.from}
+          fromName={fromName}
+          cabin={trip.cabin}
+          pax={pax}
+          date={date}
+          fare={fare}
+          plan={top}
+          payWith={payRows[0] ? { name: payRows[0].name, value: payRows[0].best.v } : undefined}
+          seatLinks={top && date ? awardLinks(top.p, trip.from, dest.code, date) : []}
+        />
+      ) : (
+      <>
       {top ? (
         <div className="f-win" style={{ gridTemplateColumns: "1fr" }}>
           <div>
@@ -316,16 +335,18 @@ export function DestinationFinder() {
       <p className="small muted">
         Points cover {party}, one-way, {trip.cabin === "biz" ? "business" : "economy"}; the cash fare is per person. Award prices are one-way lows checked {dest.checked}: &quot;chart&quot; is the published chart, &quot;lowest seen&quot; moves by date, &quot;est.&quot; is estimated from nearby routes. No seat is checked or held here. Taxes are extra and seats at that price are limited. The cash fare is a rough starting value: type the real one. Check the seat on the airline&apos;s site before transferring: transfers can&apos;t be reversed. Sources: {dest.src}.
       </p>
+      </>
+      )}
     </section>
-    <TripBudget dest={dest} cabin={trip.cabin} fare={fare} fareNote={fareSource} />
+    {view === "detailed" && <TripBudget dest={dest} cabin={trip.cabin} fare={fare} fareNote={fareSource} />}
     </>
   );
 }
 
-function CheapestFare({ lookup, cabin, code }: { lookup: ReturnType<typeof useCheapFare>; cabin: Cabin; code: string }) {
+function CheapestFare({ lookup, cabin, code, simple }: { lookup: ReturnType<typeof useCheapFare>; cabin: Cabin; code: string; simple: boolean }) {
   const note = (
     <p className="small muted" style={{ margin: "-6px 0 0" }}>
-      Open a fare site and type the price you see into &quot;One-way cash fare&quot;: the ₹-per-point figures update to that fare. Award seats can be checked per route in the table.
+      Open a fare site and type the price you see into &quot;One-way cash fare&quot;: the {simple ? "answer below updates" : "₹-per-point figures update"} to that fare.
     </p>
   );
   if (cabin === "biz") return <p className="small muted" style={{ margin: "-6px 0 0" }}>Cheapest-fare lookup covers economy only. For business, open a fare site and type the price you see.</p>;

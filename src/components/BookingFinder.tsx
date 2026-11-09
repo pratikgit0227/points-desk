@@ -7,6 +7,7 @@ import { MERCHANTS } from "@/lib/data";
 import { fmt, inr, shortBank } from "@/lib/format";
 import { CardArt } from "./CardArt";
 import { useStore } from "./store";
+import { Icon } from "./Icons";
 
 const pct = (v: number, amt: number) => ((v / amt) * 100).toFixed(1) + "%";
 
@@ -25,9 +26,11 @@ export function BookingFinder() {
   );
 
   return (
-    <section className="finder" aria-labelledby="findH">
+    <section className="finder deco deco-card" aria-labelledby="findH">
       <div>
-        <h2 id="findH">Which card for this booking?</h2>
+        <h2 id="findH" className="with-icon">
+          <Icon name="card" size={20} /> Which card for this booking?
+        </h2>
         <p className="muted small" style={{ margin: "4px 0 0" }}>
           Booking an IndiGo ticket or a hotel? Type what you&apos;re buying and the amount to see which card gives the most back, in points or cashback. Card pictures are illustrations, not the banks&apos; artwork.
         </p>

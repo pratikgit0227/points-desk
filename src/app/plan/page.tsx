@@ -4,6 +4,7 @@ import { BookingFinder } from "@/components/BookingFinder";
 import { DestinationFinder } from "@/components/DestinationFinder";
 import { MyCards } from "@/components/MyCards";
 import { SavedPlans, SharedTripBanner } from "@/components/SavedPlans";
+import { ViewSwitch } from "@/components/SimpleAnswer";
 
 export const metadata: Metadata = {
   title: "Plan a trip",
@@ -13,8 +14,11 @@ export const metadata: Metadata = {
 export default function PlanPage() {
   return (
     <main className="wrap">
-      <div className="page-intro">
-        <h1>Plan a trip</h1>
+      <div className="page-intro hero-intro">
+        <div className="intro-row">
+          <h1>Plan a trip</h1>
+          <ViewSwitch />
+        </div>
         <p className="muted">Where you&apos;re going or what you&apos;re booking: the best way to use points, and the best card to pay with if you buy the ticket. Or browse <Link href="/fly">all destinations</Link>.</p>
       </div>
       <SharedTripBanner />

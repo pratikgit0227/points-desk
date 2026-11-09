@@ -10,6 +10,7 @@ import {
 } from "@/lib/data";
 import { fmt, inr, shortBank } from "@/lib/format";
 import { usePersisted } from "@/lib/persisted";
+import { Icon } from "./Icons";
 import { useStore } from "./store";
 
 interface BudgetPrefs {
@@ -146,8 +147,10 @@ export function TripBudget({
   const cashLeft = r.items.filter((x) => !x.pts);
 
   return (
-    <section className="panel budget" aria-labelledby="budgetH">
-      <h2 id="budgetH">Trip budget: {dest.name}</h2>
+    <section className="panel budget deco deco-bed" aria-labelledby="budgetH">
+      <h2 id="budgetH" className="with-icon">
+        <Icon name="bed" size={20} /> Trip budget: {dest.name}
+      </h2>
       <p className="small muted" style={{ margin: 0 }}>
         Flights and hotel together. Your points go where they save the most
         rupees, and only where that beats using them directly. Everything else
