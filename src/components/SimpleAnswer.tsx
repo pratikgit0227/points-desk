@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { beatsValue, routeOrigin, TAX_GUESS, type FareLink, type RoutePlan } from "@/lib/calc";
+import { beatsValue, destPhoto, routeOrigin, TAX_GUESS, type FareLink, type RoutePlan } from "@/lib/calc";
 import { PARTNERS, type Cabin, type Destination } from "@/lib/data";
 import { fmt, inr, shortBank } from "@/lib/format";
 import { FareDetails } from "./FareDetails";
 import { ICONS } from "./Icons";
+import { PhotoBg } from "./PhotoBg";
 import { useStore, type View } from "./store";
 
 /** Simple / Detailed switch. */
@@ -70,7 +71,7 @@ export function SimpleAnswer({ dest, from, fromName, cabin, pax, date, fare, pla
 
   return (
     <article className="pass" aria-label="Your answer">
-      <div className="pass-stub">
+      <PhotoBg photo={destPhoto(dest.id)} className="pass-stub" credit="link">
         <div className="pass-label">Boarding pass · one-way</div>
         <div className="pass-route">
           <div>
@@ -100,7 +101,7 @@ export function SimpleAnswer({ dest, from, fromName, cabin, pax, date, fare, pla
             <dd>{pax}</dd>
           </div>
         </dl>
-      </div>
+      </PhotoBg>
 
       <div className="pass-body">
         <div className="pass-label">Our answer</div>
