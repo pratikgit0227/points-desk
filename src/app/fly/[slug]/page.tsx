@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cardSlug, destinationBySlug, destinationFacts, destSlug, priceBasis } from "@/lib/calc";
+import { cardSlug, destinationBySlug, destinationFacts, destPhoto, destSlug, priceBasis } from "@/lib/calc";
+import { PhotoBg } from "@/components/PhotoBg";
 import { DESTINATIONS, PARTNERS, cardName } from "@/lib/data";
 import { fmt, inr, ratioTxt } from "@/lib/format";
 import { Fact } from "@/components/Fact";
@@ -38,18 +39,16 @@ export default async function FlyPage({ params }: PageProps<"/fly/[slug]">) {
         <Link href="/fly">Destinations</Link> › {d.name}
       </nav>
 
-      <header className="page-intro">
+      <PhotoBg photo={destPhoto(d.id)} className="fly-hero" credit="link" priority>
         <div className="eyebrow">
           {d.country} · {d.code}
         </div>
         <h1>Fly to {d.name} on points</h1>
-        <p className="muted">
-          Every transfer partner that gets you to {d.name} from India, how many points each one takes, and which card to move them from.
-        </p>
+        <p>Every transfer partner that gets you to {d.name} from India, how many points each one takes, and which card to move them from.</p>
         <div className="actions">
           <PlanTripButton id={d.id} name={d.name} />
         </div>
-      </header>
+      </PhotoBg>
 
       {d.note && (
         <p className="small capnote" role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, background: "var(--brass-soft)", border: "1px solid var(--brass-line)" }}>

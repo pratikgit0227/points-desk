@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GuideIndex } from "@/components/GuideIndex";
 import { Notes } from "@/components/Notes";
+import { PhotoCredits } from "@/components/PhotoCredits";
 import { Points101 } from "@/components/Points101";
 import { ValueEditor } from "@/components/ValueEditor";
 
@@ -26,6 +27,7 @@ export default function LearnPage() {
       <GuideIndex />
       <ValueEditor />
       <Notes />
+      <PhotoCredits />
     </main>
   );
 }
