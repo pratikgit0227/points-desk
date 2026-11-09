@@ -11,12 +11,12 @@ export function TopBar() {
   return (
     <div className="topbar">
       <div className="brand-wrap">
-        <Link href="/" aria-label="Points Desk home">
+        <Link href="/" aria-label="Suite & Seat home">
           <Image src="/logo.png" alt="Aarthik Udaan" width={40} height={40} className="brand-logo" priority />
         </Link>
         <div className="brand-text">
           <div className="brand">
-            Points <span>Desk</span>
+            Suite &amp; <span>Seat</span>
           </div>
           <a className="header-credit" href="https://x.com/pratik0227" target="_blank" rel="noopener noreferrer">
             by <b>CA Pratik Bharda</b>

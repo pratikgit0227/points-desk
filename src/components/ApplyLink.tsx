@@ -23,8 +23,8 @@ export function ApplyNote({ keys }: { keys: string[] }) {
   const links = keys.map(applyLinkFor).filter((l) => l !== undefined);
   if (links.length === 0) return null;
   return links.some((l) => l.aff) ? (
-    <>Some apply links (marked *) are affiliate links: Points Desk may earn a fee if you&apos;re approved. It never changes the rankings.</>
+    <>Some apply links (marked *) are affiliate links: Suite &amp; Seat may earn a fee if you&apos;re approved. It never changes the rankings.</>
   ) : (
-    <>Apply links go to the bank&apos;s own page. Points Desk earns nothing from them.</>
+    <>Apply links go to the bank&apos;s own page. Suite &amp; Seat earns nothing from them.</>
   );
 }

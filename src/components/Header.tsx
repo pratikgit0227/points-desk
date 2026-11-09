@@ -16,7 +16,7 @@ export function Header() {
     <header className="top">
       <div>
         <div className="eyebrow">Credit card points · transfer partners · ₹ value</div>
-        <h1>Points Desk</h1>
+        <h1>Suite &amp; Seat</h1>
         <p className="muted small" style={{ margin: "6px 0 0", maxWidth: "62ch" }}>
           Your card points balances, ranked against every transfer partner each card allows. Ratios verified {longDate(DATA_CHECKED)}, including Axis&apos;s 23 Sep reshuffle. Bank and source pages are checked every day, and the data is updated when they change.
         </p>

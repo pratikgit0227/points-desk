@@ -12,16 +12,19 @@ import { useStore, type View } from "./store";
 export function ViewSwitch() {
   const { view, setView } = useStore();
   const opts: { v: View; label: string; hint: string }[] = [
-    { v: "simple", label: "Simple", hint: "One clear answer in plain words" },
-    { v: "detailed", label: "Detailed", hint: "Every option, ratio and cap" },
+    { v: "simple", label: "Beginner", hint: "One clear answer in plain words" },
+    { v: "detailed", label: "Pro", hint: "Every option, ratio, cap and the full maths" },
   ];
   return (
-    <div className="chips view-switch" role="group" aria-label="How much detail">
+    <div className="view-wrap">
+      <span className="small muted">View:</span>
+    <div className="chips view-switch" role="group" aria-label="Beginner or Pro view">
       {opts.map((o) => (
         <button key={o.v} type="button" className="chip" aria-pressed={view === o.v} title={o.hint} onClick={() => setView(o.v)}>
           {o.label}
         </button>
       ))}
+    </div>
     </div>
   );
 }
@@ -178,7 +181,7 @@ export function SimpleAnswer({ dest, from, fromName, cabin, pax, date, fare, pla
 
         <div className="pass-foot">
           <button type="button" className="link" onClick={() => setView("detailed")}>
-            See all options and the maths →
+            Switch to Pro view: all options and the maths →
           </button>
           <Link href="/learn#points-101">New to points? Start here</Link>
         </div>
