@@ -2,6 +2,8 @@ import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import "./dock.css";
+import { Dock } from "@/components/Dock";
 import { GuideDialog } from "@/components/GuideDialog";
 import { StoreProvider } from "@/components/store";
 import { TopBar } from "@/components/TopBar";
@@ -54,6 +56,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <StoreProvider>
           <TopBar />
           {children}
+          <Dock />
           <GuideDialog />
         </StoreProvider>
         {/* Anonymous, cookie-free page-view counts (Vercel Web Analytics, free tier) */}

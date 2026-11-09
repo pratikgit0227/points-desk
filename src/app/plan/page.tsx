@@ -5,6 +5,7 @@ import { DestinationFinder } from "@/components/DestinationFinder";
 import { MyCards } from "@/components/MyCards";
 import { SavedPlans, SharedTripBanner } from "@/components/SavedPlans";
 import { ViewSwitch } from "@/components/SimpleAnswer";
+import { PageTransition } from "@/components/PageTransition";
 
 export const metadata: Metadata = {
   title: "Plan a trip",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 
 export default function PlanPage() {
   return (
+    <PageTransition>
     <main className="wrap">
       <div className="page-intro hero-intro">
         <div className="intro-row">
@@ -27,5 +29,6 @@ export default function PlanPage() {
       <SavedPlans />
       <BookingFinder />
     </main>
+    </PageTransition>
   );
 }

@@ -5,10 +5,12 @@ import { LatestChange } from "@/components/LatestChange";
 import { MyCards } from "@/components/MyCards";
 import { Trips } from "@/components/Trips";
 import { Wallets } from "@/components/Wallets";
+import { PageTransition } from "@/components/PageTransition";
 
 /** My Wallet: your cards, what the points are worth, and where they can take you. */
 export default function WalletPage() {
   return (
+    <PageTransition>
     <main className="wrap">
       <Header />
       <LatestChange />
@@ -18,5 +20,6 @@ export default function WalletPage() {
       <Wallets />
       <Trips />
     </main>
+    </PageTransition>
   );
 }
