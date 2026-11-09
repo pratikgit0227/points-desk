@@ -1,0 +1,81 @@
+/*
+ * Header + Mac-style dock + page slides.
+ * Header and dock stay still while page content slides (view transitions).
+ */
+
+/* ---------- slim header, aligned with the page content ---------- */
+.topbar{display:block;padding:0;background:rgba(255,255,255,.78);-webkit-backdrop-filter:saturate(1.6) blur(16px);backdrop-filter:saturate(1.6) blur(16px);
+  border-bottom:1px solid rgba(221,230,239,.8);position:sticky;top:0;z-index:30;box-shadow:0 6px 18px rgba(16,24,40,.04);view-transition-name:site-header}
+.topbar-in{max-width:1180px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.brand{color:var(--ink);text-decoration:none}
+.asof{display:inline-flex;align-items:center;gap:7px;padding:5px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--line);font-size:.72rem;color:var(--ink-2)}
+.asof-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+@media (max-width:560px){.asof{display:none}}
+
+/* room for the dock under the last section */
+main.wrap{padding-bottom:132px}
+
+/* ---------- the dock ---------- */
+.dock{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:40;
+  display:flex;align-items:flex-end;gap:10px;padding:8px 12px 6px;border-radius:24px;
+  background:rgba(255,255,255,.62);-webkit-backdrop-filter:saturate(1.8) blur(22px);backdrop-filter:saturate(1.8) blur(22px);
+  border:1px solid rgba(255,255,255,.75);box-shadow:0 18px 40px rgba(15,61,99,.18),0 2px 6px rgba(16,24,40,.08),inset 0 1px 0 rgba(255,255,255,.8);
+  view-transition-name:site-dock}
+.dock-item{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;text-decoration:none;color:var(--ink-2);padding:0 4px 8px}
+.dock-ico{width:50px;height:50px;border-radius:14px;display:grid;place-items:center;color:#fff;
+  box-shadow:0 6px 14px rgba(15,61,99,.22),inset 0 1px 0 rgba(255,255,255,.35);
+  transform-origin:50% 100%;transition:transform .22s cubic-bezier(.2,.8,.2,1.2)}
+.dock-ico svg{width:26px;height:26px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.dock-wallet .dock-ico{background:linear-gradient(160deg,#3b8fd6,#0f3d63)}
+.dock-plane .dock-ico{background:linear-gradient(160deg,#56c1f0,#1769a8)}
+.dock-card .dock-ico{background:linear-gradient(160deg,#f2b84b,#9a5b00)}
+.dock-book .dock-ico{background:linear-gradient(160deg,#8b7cf6,#4338ca)}
+.dock-label{font-size:10.5px;font-weight:600;white-space:nowrap}
+.dock-item[aria-current="page"] .dock-label{color:var(--accent-deep)}
+/* the "app is open" dot */
+.dock-item::after{content:"";position:absolute;bottom:0;width:5px;height:5px;border-radius:50%;background:transparent;transition:background .2s}
+.dock-item[aria-current="page"]::after{background:var(--accent-deep)}
+/* name bubble on hover, like the Mac dock */
+.dock-tip{position:absolute;bottom:calc(100% + 18px);left:50%;transform:translateX(-50%) translateY(4px);padding:4px 10px;border-radius:8px;
+  background:rgba(17,24,39,.86);color:#fff;font-size:12px;font-weight:600;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .15s,transform .15s}
+
+@media (hover:hover) and (pointer:fine){
+  .dock-item:hover .dock-ico{transform:translateY(-14px) scale(1.42)}
+  .dock-item:hover + .dock-item .dock-ico,.dock-item:has(+ .dock-item:hover) .dock-ico{transform:translateY(-6px) scale(1.18)}
+  .dock-item:hover .dock-tip{opacity:1;transform:translateX(-50%) translateY(-6px)}
+  .dock-item:hover .dock-label{opacity:0}
+}
+/* bounce once when a section opens */
+.dock-item[aria-current="page"] .dock-ico{animation:dock-bounce .6s cubic-bezier(.3,.7,.4,1) 1}
+@keyframes dock-bounce{0%,100%{translate:0 0}35%{translate:0 -12px}65%{translate:0 0}80%{translate:0 -4px}}
+.dock-item:focus-visible{outline:none}
+.dock-item:focus-visible .dock-ico{outline:2px solid var(--accent);outline-offset:3px}
+
+@media (max-width:560px){
+  .dock{left:8px;right:8px;transform:none;justify-content:space-around;gap:0;border-radius:20px;padding:7px 6px 5px}
+  .dock-ico{width:42px;height:42px;border-radius:12px}
+  .dock-ico svg{width:22px;height:22px}
+  .dock-label{font-size:10px}
+  .dock-tip{display:none}
+  main.wrap{padding-bottom:116px}
+}
+
+/* ---------- page slides (Mac desktop switch) ---------- */
+::view-transition{pointer-events:none}
+::view-transition-group(site-header),::view-transition-group(site-dock){animation:none;z-index:100}
+::view-transition-old(site-header),::view-transition-old(site-dock){display:none}
+::view-transition-new(site-header),::view-transition-new(site-dock){animation:none}
+
+::view-transition-old(.nav-forward){--slide:-90px;animation:180ms ease-in both pd-fade reverse,420ms cubic-bezier(.4,0,.2,1) both pd-slide reverse}
+::view-transition-new(.nav-forward){--slide:90px;animation:240ms ease-out 140ms both pd-fade,420ms cubic-bezier(.4,0,.2,1) both pd-slide}
+::view-transition-old(.nav-back){--slide:90px;animation:180ms ease-in both pd-fade reverse,420ms cubic-bezier(.4,0,.2,1) both pd-slide reverse}
+::view-transition-new(.nav-back){--slide:-90px;animation:240ms ease-out 140ms both pd-fade,420ms cubic-bezier(.4,0,.2,1) both pd-slide}
+@keyframes pd-fade{from{opacity:0;filter:blur(2px)}to{opacity:1;filter:blur(0)}}
+@keyframes pd-slide{from{translate:var(--slide);scale:.985}to{translate:0;scale:1}}
+
+@media (prefers-reduced-motion: reduce){
+  ::view-transition-old(*),::view-transition-new(*),::view-transition-group(*){animation-duration:0s !important;animation-delay:0s !important}
+  .dock-ico{transition:none}
+  .dock-item[aria-current="page"] .dock-ico{animation:none}
+}
+@media print{.dock{display:none}}

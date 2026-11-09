@@ -4,6 +4,7 @@ import { CardPicker } from "@/components/CardPicker";
 import { cardSlug } from "@/lib/calc";
 import { PROGRAMS, cardName } from "@/lib/data";
 import { Matrix } from "@/components/Matrix";
+import { PageTransition } from "@/components/PageTransition";
 
 export const metadata: Metadata = {
   title: "Choose a card",
@@ -12,6 +13,7 @@ export const metadata: Metadata = {
 
 export default function CardsPage() {
   return (
+    <PageTransition>
     <main className="wrap">
       <div className="page-intro">
         <h1>Choose a card</h1>
@@ -27,5 +29,6 @@ export default function CardsPage() {
       <CardPicker />
       <Matrix />
     </main>
+    </PageTransition>
   );
 }

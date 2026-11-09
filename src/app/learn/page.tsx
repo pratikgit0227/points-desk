@@ -5,6 +5,7 @@ import { Notes } from "@/components/Notes";
 import { PhotoCredits } from "@/components/PhotoCredits";
 import { Points101 } from "@/components/Points101";
 import { ValueEditor } from "@/components/ValueEditor";
+import { PageTransition } from "@/components/PageTransition";
 
 export const metadata: Metadata = {
   title: "Learn",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 
 export default function LearnPage() {
   return (
+    <PageTransition>
     <main className="wrap">
       <div className="page-intro">
         <h1>Learn</h1>
@@ -29,5 +31,6 @@ export default function LearnPage() {
       <Notes />
       <PhotoCredits />
     </main>
+    </PageTransition>
   );
 }
