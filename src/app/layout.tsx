@@ -5,6 +5,7 @@ import "./globals.css";
 import { GuideDialog } from "@/components/GuideDialog";
 import { StoreProvider } from "@/components/store";
 import { TopBar } from "@/components/TopBar";
+import { Watermark } from "@/components/Watermark";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script data-cmp-ab="2" dangerouslySetInnerHTML={{ __html: TRAVELPAYOUTS_SCRIPT }} />
       </head>
       <body>
+        <Watermark />
         <StoreProvider>
           <TopBar />
           {children}

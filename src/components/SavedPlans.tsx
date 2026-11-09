@@ -6,6 +6,7 @@ import { DESTINATIONS, ORIGINS } from "@/lib/data";
 import { fmt, inr, longDate } from "@/lib/format";
 import { usePersisted } from "@/lib/persisted";
 import { FareDetails } from "./FareDetails";
+import { Icon } from "./Icons";
 import { useStore, type TripState } from "./store";
 
 const NO_PLANS: TripPlan[] = [];
@@ -46,7 +47,7 @@ function scrollToFinder() {
 
 /** Save, compare and share trip plans. Plans stay in this browser. */
 export function SavedPlans() {
-  const { trip, setTrip, balances, values, mine } = useStore();
+  const { trip, setTrip, balances, values, mine, view } = useStore();
   const [plans, setPlans] = usePersisted("pd_plans", NO_PLANS);
   const [active, setActive] = useState("");
   const core = coreOf(trip);
@@ -66,12 +67,16 @@ export function SavedPlans() {
   };
 
   return (
-    <section className="panel" aria-labelledby="plansH">
-      <h2 id="plansH">Your trip plans</h2>
+    <section className="panel deco deco-pin" aria-labelledby="plansH">
+      <h2 id="plansH" className="with-icon">
+        <Icon name="pin" size={20} /> Your trip plans
+      </h2>
       <p className="small muted" style={{ margin: 0 }}>
         Plans are saved in this browser only, like your balances. Nothing is sent to us, and clearing your browser data removes them.
       </p>
 
+      {view === "detailed" && (
+      <>
       <h3 style={{ margin: "6px 0 0" }}>Compare: {dest?.name}</h3>
       <p className="small muted" style={{ margin: 0 }}>
         {summary(core)}. Totals are for everyone, both ways{core.legs === 2 ? " (same award price assumed each way)" : ""}. Tick &quot;Compare&quot; on up to 3 options above to add them.
@@ -86,6 +91,8 @@ export function SavedPlans() {
         Bags aren&apos;t confirmed for any option, so a cheap fare without a checked bag isn&apos;t like-for-like: check each fare&apos;s rules.
         {core.pax > 1 ? ` Award seats for ${core.pax} on one flight are often scarce; if you can't find them, split across dates or programmes.` : ""}
       </p>
+      </>
+      )}
 
       <div className="plan-actions">
         <button type="button" className="primary" onClick={save}>

@@ -53,8 +53,14 @@ const TRIP: TripState = { q: "kuwait", id: "kwi", cabin: "eco", fare: 0, airline
 const NO_CASH: CashPrices = {};
 const NOT_SET: string[] | null = null;
 const NO_NAMES: Record<string, string> = {};
+const AUTO_VIEW: View | null = null;
+
+export type View = "simple" | "detailed";
 
 interface Store extends Ctx {
+  /** Simple (plain answer) or Detailed (full tables). New visitors start simple; anyone with cards or values starts detailed. */
+  view: View;
+  setView: (v: View) => void;
   usingExample: boolean;
   /** Program keys of the cards the user holds; null until they pick */
   mine: string[] | null;
@@ -101,6 +107,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [mineRaw, setMine] = usePersisted("pd_mine", NOT_SET);
   const [cardAs, setCardAs] = usePersisted("pd_card_as", NO_NAMES);
   const [guide, setGuide] = useState<PartnerId | null>(null);
+  const [viewSet, setView] = usePersisted("pd_view", AUTO_VIEW);
 
   // An empty pick behaves like "not set"
   const mine = mineRaw?.length ? mineRaw : null;
@@ -108,6 +115,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   // Only cards the user holds count towards worth and trips
   const balances = useMemo(() => (mine ? Object.fromEntries(Object.entries(all).filter(([k]) => mine.includes(k))) : all), [all, mine]);
   const usingExample = Object.values(balances).some((b) => b.src === "ex" && b.n > 0);
+  const view: View = viewSet ?? (mine || saved || Object.keys(values).length ? "detailed" : "simple");
 
   const setBalance = useCallback(
     (key: string, n: number) => setSaved((prev) => ({ ...clearExamples(prev ?? EXAMPLE), [key]: { n: Math.max(0, Math.round(n || 0)), src: "manual" } })),
@@ -131,6 +139,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo<Store>(
     () => ({
+      view,
+      setView,
       balances,
       values,
       filter,
@@ -170,7 +180,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       openGuide: setGuide,
       closeGuide: () => setGuide(null),
     }),
-    [balances, values, filter, usingExample, mine, setMine, cardAs, setCardAs, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
+    [view, setView, balances, values, filter, usingExample, mine, setMine, cardAs, setCardAs, setBalance, applyFound, setValues, setFilter, found, addFound, finder, setFinderRaw, pick, setPickRaw, trip, setTripRaw, cashPrices, setCash, tripDate, setTripDate, guide],
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
