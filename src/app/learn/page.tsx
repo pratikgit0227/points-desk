@@ -27,6 +27,11 @@ export default function LearnPage() {
         <span>Every devaluation, ratio change and new partner in 2026, with dates and sources.</span>
         <span className="small">Open →</span>
       </Link>
+      <Link href="/gift-cards" className="latest partner">
+        <span className="eyebrow">Gift vouchers</span>
+        <span>Extra points on vouchers bought through SmartBuy, iShop and ShopWise, and when vouchers beat transfers.</span>
+        <span className="small">Open →</span>
+      </Link>
       <GuideIndex />
       <ValueEditor />
       <Faq />

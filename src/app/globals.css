@@ -502,3 +502,5 @@ a.trip{display:flex}
 .faq details{border-top:1px solid var(--line);padding:10px 0}
 .faq details:first-child{border-top:0}
 .faq details p{margin:0;max-width:72ch}
+.g-notes{margin:4px 0;padding-left:16px;color:var(--ink-2)}
+.g-notes li{margin:1px 0}

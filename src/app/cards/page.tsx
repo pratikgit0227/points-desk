@@ -17,7 +17,7 @@ export default function CardsPage() {
     <main className="wrap">
       <div className="page-intro">
         <h1>Choose a card</h1>
-        <p className="muted">Compare the open travel cards on what they earn you in a year after the fee, and see which card transfers best to each partner.</p>
+        <p className="muted">Compare the open travel cards on what they earn you in a year after the fee, and see which card transfers best to each partner. Buying gift vouchers? See <Link href="/gift-cards">which card earns most on vouchers</Link>.</p>
       </div>
       <nav className="card-links" aria-label="All cards">
         {PROGRAMS.map((p) => (
