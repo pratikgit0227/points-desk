@@ -1,6 +1,7 @@
 import { BalanceImport } from "@/components/BalanceImport";
 import { FilterBar } from "@/components/FilterBar";
 import { Header } from "@/components/Header";
+import { HowItWorks } from "@/components/HowItWorks";
 import { LatestChange } from "@/components/LatestChange";
 import { MyCards } from "@/components/MyCards";
 import { Trips } from "@/components/Trips";
@@ -13,6 +14,7 @@ export default function WalletPage() {
     <PageTransition>
     <main className="wrap">
       <Header />
+      <HowItWorks />
       <LatestChange />
       <MyCards />
       <BalanceImport />
