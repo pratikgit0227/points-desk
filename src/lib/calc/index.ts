@@ -12,3 +12,4 @@ export * from "./fareinfo";
 export * from "./plans";
 export * from "./photos";
 export * from "./alerts";
+export * from "./booked";

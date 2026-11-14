@@ -55,3 +55,10 @@ export function usePersisted<T>(key: string, fallback: T): [T, Setter<T>] {
   );
   return [value, set];
 }
+
+const noSub = () => () => {};
+
+/** Today (YYYY-MM-DD) in the browser; "" while rendering on the server, so prerendering stays stable. */
+export function useToday(): string {
+  return useSyncExternalStore(noSub, () => new Date().toISOString().slice(0, 10), () => "");
+}
