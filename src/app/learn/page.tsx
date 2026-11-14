@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Faq } from "@/components/Faq";
 import { GuideIndex } from "@/components/GuideIndex";
 import { Notes } from "@/components/Notes";
 import { PhotoCredits } from "@/components/PhotoCredits";
@@ -28,6 +29,7 @@ export default function LearnPage() {
       </Link>
       <GuideIndex />
       <ValueEditor />
+      <Faq />
       <Notes />
       <PhotoCredits />
     </main>
