@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BookedTrips } from "@/components/BookedTrips";
 import { BookingFinder } from "@/components/BookingFinder";
 import { DestinationFinder } from "@/components/DestinationFinder";
 import { MyCards } from "@/components/MyCards";
@@ -27,6 +28,7 @@ export default function PlanPage() {
       <MyCards />
       <DestinationFinder />
       <SavedPlans />
+      <BookedTrips />
       <BookingFinder />
     </main>
     </PageTransition>

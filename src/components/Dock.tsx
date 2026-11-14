@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { planAlerts, type TripPlan } from "@/lib/calc";
-import { usePersisted } from "@/lib/persisted";
+import { bookedNews, planAlerts, type BookedTrip, type TripPlan } from "@/lib/calc";
+import { usePersisted, useToday } from "@/lib/persisted";
 import { useStore } from "./store";
 import { TABS, tabIndex } from "./tabs";
 
@@ -22,14 +22,17 @@ const PATHS: Record<(typeof TABS)[number]["icon"], string> = {
  * icon you pick (like switching desktops).
  */
 const NO_PLANS: TripPlan[] = [];
+const NO_BOOKED: BookedTrip[] = [];
 
 export function Dock() {
   const path = usePathname();
   const here = tabIndex(path);
   const { mine } = useStore();
   const [plans] = usePersisted("pd_plans", NO_PLANS);
-  // Watched plans with something new: a count on the Plan icon
-  const news = plans.filter((p) => p.watch && planAlerts(p, p.watch, mine).length).length;
+  const [booked] = usePersisted("pd_booked", NO_BOOKED);
+  const now = useToday();
+  // Watched plans with something new, and booked flights now cheaper: a count on the Plan icon
+  const news = plans.filter((p) => p.watch && planAlerts(p, p.watch, mine).length).length + (now ? bookedNews(booked, now) : 0);
   return (
     <nav className="dock" aria-label="Sections">
       {TABS.map((t, i) => {
@@ -42,7 +45,7 @@ export function Dock() {
             </span>
             <span className="dock-ico" style={{ position: "relative" }}>
               {t.icon === "plane" && news > 0 && (
-                <span className="dock-badge" aria-label={`${news} saved plan${news > 1 ? "s" : ""} with changes`}>
+                <span className="dock-badge" aria-label={`${news} trip${news > 1 ? "s" : ""} with news`}>
                   {news}
                 </span>
               )}
