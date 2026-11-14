@@ -10,6 +10,10 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 export const SOURCES = [
+  { id: "gift-smartbuy-cap", what: "HDFC SmartBuy voucher cap", url: "https://magnify.club/guides/hdfc-smartbuy-gift-voucher-points-cap" },
+  { id: "gift-ishop-faq", what: "ICICI iShop caps and brand limits (bank)", url: "https://www.icici.bank.in/ishop/faqs" },
+  { id: "gift-amex-shopwise", what: "Amex ShopWise multipliers and caps", url: "https://pointsfly.ai/blog/amex-reward-multiplier-shopwise" },
+  { id: "gift-amex-gold-collection", what: "Amex Gold Collection voucher values (bank)", url: "https://www.americanexpress.com/in/charge-cards/gold-card/" },
   // Transfer ratios
   { id: "axis-groups-cardexpress", what: "Axis transfer partners and groups", url: "https://cardexpress.in/articles/axis-edge-transfer-partners-group-a-group-b" },
   { id: "axis-groups-magnify", what: "Axis groups and yearly caps", url: "https://magnify.club/guides/axis-bank-group-a-group-b-transfer-partners/" },
