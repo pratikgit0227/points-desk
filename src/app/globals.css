@@ -504,3 +504,13 @@ a.trip{display:flex}
 .faq details p{margin:0;max-width:72ch}
 .g-notes{margin:4px 0;padding-left:16px;color:var(--ink-2)}
 .g-notes li{margin:1px 0}
+
+/* award price finder (/awards) */
+.aw-route{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap}
+.aw-field{position:relative;flex:1 1 220px;display:flex;flex-direction:column;gap:4px}
+.aw-swap{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 12px;font-size:1rem;color:var(--accent)}
+.aw-suggest{position:absolute;top:100%;left:0;right:0;z-index:20;margin:4px 0 0;padding:4px;list-style:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.aw-suggest button{display:block;width:100%;text-align:left;border:none;background:transparent;padding:7px 10px;border-radius:6px;font-size:.86rem;color:var(--ink)}
+.aw-suggest button:hover{background:var(--accent-soft)}
+.aw-seen{margin:0;padding-left:18px;display:grid;gap:8px}
+.ok-text{color:var(--accent);font-weight:600}
