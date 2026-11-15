@@ -10,7 +10,7 @@ export const AWARD_CHECKED = "2026-11-15";
 export interface ChartSource {
   label: string;
   url: string;
-  /** YYYY-MM-DD the source was published or last updated */
+  /** YYYY-MM-DD the source was published or updated; the date we checked it when it shows none */
   date: string;
 }
 

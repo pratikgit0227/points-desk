@@ -3,11 +3,12 @@ import type { PartnerId } from "@/lib/data/partners";
 import { AI_ROUTES } from "@/lib/data/airindia-routes";
 import {
   AEROPLAN_ATLANTIC_ASIA, AEROPLAN_BANDS, AEROPLAN_PACIFIC_ASIA, AEROPLAN_UNKNOWN, AEROPLAN_ZONE_NAMES, AI_REGIONS,
-  BA_HUBS, BA_OWN, BA_PARTNER, KF_FROM_SIN, KF_FROM_SOUTH_ASIA, KF_US, KF_ZONE_NAMES,
+  BA_HUBS, BA_OWN, KF_FROM_SIN, KF_FROM_SOUTH_ASIA, KF_US, KF_ZONE_NAMES,
   type AeroplanZone, type Band, type KfZone,
 } from "@/lib/data/awardcharts";
+import { CATHAY_OWN, DISTANCE_TABLES, NO_CHART, ROUTE_TABLES, TK_COUNTRIES, TK_OWN, TK_PARTNER, TK_REGION_NAMES, type DBand, type Place, type Pts, type TkRegion } from "@/lib/data/awardcharts-more";
 import { METRO, SIGHTINGS, type Sighting } from "@/lib/data/sightings";
-import { distanceMiles, type Airport } from "./airports";
+import { airport, distanceMiles, type Airport } from "./airports";
 import { awardLinks, type FareLink } from "./trips";
 
 /** One-way price; `hi` is the peak / Prime price where the programme has one. */
@@ -26,6 +27,10 @@ export interface AwardQuote {
   basis: string;
   /** high: exact route or chart cell; medium: region price or a rule that depends on the airline flying it */
   conf: "high" | "medium";
+  /** Typical lowest price seen, not a published chart */
+  seen?: boolean;
+  /** Price on a partner airline: only applies if that partner flies the route */
+  partner?: boolean;
   note?: string;
 }
 
@@ -192,21 +197,120 @@ function avios(from: Airport, to: Airport, miles: number): AwardQuote[] {
     // BA flies this itself; a partner price here would mislead
     return out;
   }
-  const { band, label } = inBand<Band>(BA_PARTNER, miles);
-  out.push({
-    p: "ba",
-    on: "oneworld partners",
-    eco: { lo: band[1] },
-    biz: { lo: band[2] },
-    basis: `Partner flight, ${label}`,
-    conf: "medium",
-    note: "Only if a oneworld airline (Malaysia, SriLankan, Qantas, Cathay, JAL…) flies it nonstop. Each extra flight is priced on its own.",
-  });
   return out;
 }
 
-/** Programmes whose prices aren't charted yet. */
-export const AWARD_COMING = "Qatar, Flying Blue, Turkish, Etihad, United, JAL, Cathay and the others";
+
+/* ---------------- Generic route and distance tables ---------------- */
+
+export function inPlace(a: Airport, pl: Place): boolean {
+  if (pl.not?.includes(a.code)) return false;
+  return Boolean(pl.codes?.includes(a.code) || pl.countries?.includes(a.country) || pl.continents?.includes(a.continent));
+}
+
+const price = (x?: Pts): Price | undefined => (x ? { lo: x[0], hi: x[1] } : undefined);
+
+function routeTables(from: Airport, to: Airport): AwardQuote[] {
+  const out: AwardQuote[] = [];
+  for (const t of ROUTE_TABLES) {
+    const row = t.rows.find((r) => (inPlace(from, r.a) && inPlace(to, r.b)) || (inPlace(from, r.b) && inPlace(to, r.a)));
+    if (!row) continue;
+    out.push({
+      p: t.p, on: t.on, eco: price(row.eco), biz: price(row.biz), basis: row.label,
+      conf: t.kind === "chart" ? "high" : "medium", seen: t.kind === "seen", partner: t.partner, note: t.note,
+    });
+  }
+  return out;
+}
+
+function distanceTables(from: Airport, to: Airport, miles: number): AwardQuote[] {
+  const out: AwardQuote[] = [];
+  for (const t of DISTANCE_TABLES) {
+    if (t.touches && !inPlace(from, t.touches) && !inPlace(to, t.touches)) continue;
+    // The programme's own airline flies this, so a partner price would mislead
+    if (t.skip && (inPlace(from, t.skip) || inPlace(to, t.skip))) continue;
+    // No partner of this programme flies within this country (e.g. no oneworld airline within India)
+    if (t.notWithin && from.country === to.country && t.notWithin.includes(from.country)) continue;
+    const { band, label } = inBand<DBand>(t.bands, miles);
+    out.push({
+      p: t.p, on: t.on, eco: { lo: band[1] }, biz: { lo: band[2] }, basis: `${t.basis}, ${label}`,
+      conf: "medium", seen: t.kind === "seen", partner: t.partner, note: t.note,
+    });
+  }
+  return out;
+}
+
+function cathay(from: Airport, to: Airport, miles: number): AwardQuote | null {
+  const other = from.code === "HKG" ? to : to.code === "HKG" ? from : null;
+  if (!other) return null;
+  let eco: Price;
+  let biz: Price;
+  let basis: string;
+  if (miles <= CATHAY_OWN.ultraShort[0]) {
+    eco = { lo: CATHAY_OWN.ultraShort[1] };
+    biz = { lo: CATHAY_OWN.ultraShort[2] };
+    basis = "Ultra-short haul, up to 750 miles";
+  } else if (miles <= 2750) {
+    const [e1, e2, b1, b2] = CATHAY_OWN.short;
+    const t2 = CATHAY_OWN.type2.includes(other.country);
+    eco = t2 ? { lo: e2 } : { lo: e1, hi: e2 };
+    biz = t2 ? { lo: b2 } : { lo: b1, hi: b2 };
+    basis = t2 ? "Short haul (type 2), 751–2,750 miles" : "Short haul, 751–2,750 miles (type 1 or 2 by city)";
+  } else {
+    const { band, label } = inBand<DBand>(CATHAY_OWN.longer, miles);
+    eco = { lo: band[1] };
+    biz = { lo: band[2] };
+    basis = label;
+  }
+  return { p: "cathay", on: "Cathay Pacific", eco, biz, basis, conf: "medium", note: "Only if Cathay flies this route from Hong Kong." };
+}
+
+/* ---------------- Turkish Miles&Smiles ---------------- */
+
+export function tkRegion(a: Airport): TkRegion | null {
+  for (const [r, list] of Object.entries(TK_COUNTRIES) as [TkRegion, readonly string[]][]) if (list.includes(a.country)) return r;
+  switch (a.continent) {
+    case "EU": return "EU2";
+    case "AF": return "CAF";
+    case "SA": return "SAM";
+    case "OC": return "OCE";
+    default: return null;
+  }
+}
+
+function turkish(from: Airport, to: Airport): AwardQuote[] {
+  const ra = tkRegion(from);
+  const rb = tkRegion(to);
+  if (!ra || !rb) return [];
+  const out: AwardQuote[] = [];
+  // Own flights: each flight is Türkiye ↔ a region; via Istanbul adds two flights
+  const legs = ra === "TR" ? [rb] : rb === "TR" ? [ra] : [ra, rb];
+  // Via Istanbul only when it's roughly on the way (not Delhi–Mumbai or Delhi–Singapore)
+  const ist = airport("IST");
+  const onTheWay = ist ? distanceMiles(from, ist) + distanceMiles(ist, to) <= 1.35 * distanceMiles(from, to) : false;
+  if (legs.length === 1 || (ra !== rb && onTheWay)) {
+    const sum = (i: number) => legs.reduce((t, r) => t + TK_OWN[r][i], 0);
+    const via = legs.length === 2;
+    out.push({
+      p: "turkish", on: "Turkish Airlines",
+      eco: { lo: sum(0), hi: sum(1) }, biz: { lo: sum(2), hi: sum(3) },
+      basis: via ? `Via Istanbul: ${TK_REGION_NAMES[ra]} + ${TK_REGION_NAMES[rb]}` : `Türkiye – ${TK_REGION_NAMES[legs[0]]}`,
+      conf: via ? "medium" : "high",
+      note: "Promo seat to standard award seat." + (via ? " Two flights priced separately and added." : ""),
+    });
+  }
+  // Star Alliance partners: chart rows we have start in Central Asia (India) or the Middle East
+  const row = TK_PARTNER[ra]?.[rb] ?? TK_PARTNER[rb]?.[ra];
+  // Within India only Air India flies, and it blocks Miles&Smiles
+  if (row && ra !== "TR" && rb !== "TR" && !(from.country === "IN" && to.country === "IN")) {
+    out.push({
+      p: "turkish", on: "Star Alliance partners", eco: { lo: row[0] }, biz: { lo: row[1] },
+      basis: `Partner award, ${TK_REGION_NAMES[ra]} – ${TK_REGION_NAMES[rb]}`, conf: "medium", partner: true,
+      note: "Air India doesn't release seats to Miles&Smiles.",
+    });
+  }
+  return out;
+}
 
 /** Every charted one-way price between two airports, cheapest economy first. */
 export function awardPrices(from: Airport, to: Airport): AwardResult {
@@ -223,6 +327,11 @@ export function awardPrices(from: Airport, to: Airport): AwardResult {
   add(aeroplan(from, to, miles));
   add(krisflyer(from, to));
   avios(from, to, miles).forEach(add);
+  routeTables(from, to).forEach(add);
+  add(cathay(from, to, miles));
+  turkish(from, to).forEach(add);
+  distanceTables(from, to, miles).forEach(add);
+  for (const m of NO_CHART) missing.push(m);
   const key = (q: AwardQuote) => q.eco?.lo ?? Infinity;
   quotes.sort((a, b) => key(a) - key(b));
   return { miles, quotes, missing };

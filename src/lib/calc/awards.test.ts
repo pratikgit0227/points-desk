@@ -81,7 +81,7 @@ describe("BA Avios", () => {
   it("offers only the partner price away from BA hubs", () => {
     const r = awardPrices(ap("DEL"), ap("KUL")).quotes.filter((q) => q.p === "ba");
     expect(r).toHaveLength(1);
-    expect(r[0].on).toBe("oneworld partners");
+    expect(r[0].partner).toBe(true);
   });
 });
 
@@ -94,5 +94,57 @@ describe("sightings and links", () => {
   it("pre-fills the Aeroplan search", () => {
     const l = awardSearchLinks("aeroplan", "DEL", "BOM", "2026-12-24").find((x) => x.label === "Aeroplan search");
     expect(l?.href).toContain("org0=DEL&dest0=BOM&departureDate0=2026-12-24");
+  });
+});
+
+describe("second batch of charts", () => {
+  const own = (from: string, to: string, p: string) =>
+    awardPrices(ap(from), ap(to)).quotes.find((q) => q.p === p && !q.partner);
+  const partner = (from: string, to: string, p: string) =>
+    awardPrices(ap(from), ap(to)).quotes.find((q) => q.p === p && q.partner);
+
+  it("JAL base seats from India", () => {
+    expect(own("DEL", "NRT", "jal")).toMatchObject({ eco: { lo: 17500 }, biz: { lo: 40000 }, conf: "high" });
+    expect(own("HND", "BLR", "jal")?.biz?.lo).toBe(40000);
+  });
+  it("Turkish own flights: one region, or two legs via Istanbul", () => {
+    expect(own("IST", "DEL", "turkish")).toMatchObject({ eco: { lo: 20000, hi: 25000 }, biz: { lo: 35000, hi: 50000 } });
+    expect(own("DEL", "LHR", "turkish")).toMatchObject({ biz: { lo: 60000, hi: 90000 } });
+    expect(own("DEL", "BOM", "turkish")).toBeUndefined();
+    expect(partner("DEL", "FRA", "turkish")).toMatchObject({ eco: { lo: 35000 }, biz: { lo: 60000 } });
+  });
+  it("Qatar typical prices are marked as seen", () => {
+    expect(own("DEL", "JFK", "qatar")).toMatchObject({ eco: { lo: 40000 }, biz: { lo: 80000 }, seen: true });
+    expect(own("BOM", "DOH", "qatar")?.eco?.lo).toBe(13000);
+  });
+  it("Thai: India–Bangkok and beyond", () => {
+    expect(own("DEL", "BKK", "thai")).toMatchObject({ eco: { lo: 17500 }, biz: { lo: 27500 } });
+    expect(own("BOM", "SYD", "thai")?.biz?.lo).toBe(90000);
+  });
+  it("United and LifeMiles from India", () => {
+    expect(own("DEL", "EWR", "united")?.biz?.lo).toBe(88000);
+    expect(own("DEL", "FRA", "lifemiles")?.biz?.lo).toBe(60100);
+  });
+  it("Vietnam, Finnair, Virgin, Cathay, Qantas, Etihad", () => {
+    expect(own("DEL", "HAN", "vietnam")).toMatchObject({ eco: { lo: 25000, hi: 35000 } });
+    expect(own("DEL", "HEL", "finnair")).toMatchObject({ eco: { lo: 28000 }, biz: { lo: 55000 } });
+    expect(own("BOM", "LHR", "virgin")?.biz?.lo).toBe(37500);
+    expect(own("BOM", "HKG", "cathay")).toMatchObject({ eco: { lo: 13000 }, biz: { lo: 33000 } });
+    expect(own("BLR", "SYD", "qantas")?.biz?.lo).toBe(113900);
+    expect(own("DEL", "AUH", "etihad")).toMatchObject({ eco: { lo: 13000 }, biz: { lo: 30000 }, seen: true });
+  });
+  it("lists programmes with no usable chart", () => {
+    const why = awardPrices(ap("DEL"), ap("ADD")).missing.map((m) => m.p);
+    expect(why).toContain("ethiopian");
+    expect(why).toContain("milesmore");
+  });
+});
+
+describe("no misleading rows", () => {
+  it("no partner prices within India, no Istanbul detour to Singapore", () => {
+    const dom = awardPrices(ap("DEL"), ap("BOM")).quotes;
+    expect(dom.filter((q) => q.partner)).toHaveLength(0);
+    expect(awardPrices(ap("DEL"), ap("SIN")).quotes.find((q) => q.p === "turkish" && !q.partner)).toBeUndefined();
+    expect(awardPrices(ap("DEL"), ap("LHR")).quotes.find((q) => q.p === "turkish" && !q.partner)).toBeDefined();
   });
 });

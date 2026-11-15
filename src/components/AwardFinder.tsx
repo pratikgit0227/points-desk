@@ -3,9 +3,10 @@
 import { useId, useMemo, useState, useSyncExternalStore } from "react";
 import { canShowCard, PARTNERS, type Cabin } from "@/lib/data";
 import { CHART_INFO } from "@/lib/data/awardcharts";
+import { MORE_CHART_INFO } from "@/lib/data/awardcharts-more";
 import { defaultTripDate, pool } from "@/lib/calc";
 import { airport, airportLabel, countryName, searchAirports, type Airport } from "@/lib/calc/airports";
-import { AWARD_COMING, awardPrices, awardSearchLinks, sightingsFor, type AwardQuote, type Price } from "@/lib/calc/awards";
+import { awardPrices, awardSearchLinks, sightingsFor, type AwardQuote, type Price } from "@/lib/calc/awards";
 import { fmt, longDate, ratioTxt, shortBank } from "@/lib/format";
 import { usePersisted } from "@/lib/persisted";
 import { Icon } from "./Icons";
@@ -83,7 +84,8 @@ function CardCost({ q, cabin }: { q: AwardQuote; cabin: Cabin }) {
   const need = q[cabin]?.lo;
   const pl = pool(q.p, balances);
   const best = pl.srcs.find((s) => s.bal > 0) ?? pl.srcs.find((s) => canShowCard(s.prog.key, mine));
-  if (!need || !best) return <span className="small muted">No card of yours transfers here</span>;
+  if (!need) return <span className="small muted">–</span>;
+  if (!best) return <span className="small muted">No card of yours transfers here</span>;
   const cardPts = Math.ceil(need / best.ratio);
   return (
     <span className="small">
@@ -94,8 +96,58 @@ function CardCost({ q, cabin }: { q: AwardQuote; cabin: Cabin }) {
   );
 }
 
-const confPill = (c: AwardQuote["conf"]) =>
-  c === "high" ? <span className="pill ok">Chart price</span> : <span className="pill unk">Depends on the route</span>;
+function ConfPill({ q }: { q: AwardQuote }) {
+  if (q.seen) return <span className="pill unk">Typical lowest seen</span>;
+  return q.conf === "high" ? <span className="pill ok">Chart price</span> : <span className="pill unk">Depends on the route</span>;
+}
+
+function QuoteTable({ rows, cabin, from, to, date }: { rows: AwardQuote[]; cabin: Cabin; from: string; to: string; date: string }) {
+  return (
+    <div className="tbl-wrap">
+      <table className="cmp-table">
+        <thead>
+          <tr>
+            <th>Programme and airline</th>
+            <th className="r">Points</th>
+            <th>From your cards</th>
+            <th>Check seats</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((q, i) => (
+            <tr key={q.p + q.on + q.basis} className={i === 0 && q[cabin] && !q.partner ? "rec" : undefined}>
+              <td>
+                <b>{PARTNERS[q.p].n}</b>
+                <div className="small muted">On {q.on}</div>
+                <div className="small muted">{q.basis}</div>
+                {q.note && <div className="small">{q.note}</div>}
+                <ConfPill q={q} />
+              </td>
+              <td className="r">
+                <PriceCell price={q[cabin]} />
+              </td>
+              <td style={{ minWidth: 180 }}>
+                <CardCost q={q} cabin={cabin} />
+              </td>
+              <td className="small">
+                {date &&
+                  awardSearchLinks(q.p, from, to, date).map((l) => (
+                    <div key={l.label}>
+                      <a href={l.href} target="_blank" rel="noopener noreferrer">
+                        {l.label} ↗
+                      </a>
+                    </div>
+                  ))}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+const ALL_CHART_INFO = [...CHART_INFO, ...MORE_CHART_INFO];
 
 /** "Mumbai → New York in business: how many points on each programme?" */
 export function AwardFinder() {
@@ -105,10 +157,11 @@ export function AwardFinder() {
   const cabin = route.cabin;
   const date = useDefaultDate();
   const { quotes, missing, miles } = useMemo(() => awardPrices(from, to), [from, to]);
-  const rows = useMemo(
-    () => [...quotes].sort((a, b) => (a[cabin]?.lo ?? Infinity) - (b[cabin]?.lo ?? Infinity)),
-    [quotes, cabin],
-  );
+  const [own, partners] = useMemo(() => {
+    // Rows with a price in this cabin first, cheapest first
+    const sorted = [...quotes].sort((a, b) => (a[cabin]?.lo ?? Infinity) - (b[cabin]?.lo ?? Infinity));
+    return [sorted.filter((q) => !q.partner), sorted.filter((q) => q.partner)];
+  }, [quotes, cabin]);
   const seen = sightingsFor(from.code, to.code);
   const set = (patch: Partial<RouteState>) => setRoute((r) => ({ ...r, ...patch }));
 
@@ -139,50 +192,22 @@ export function AwardFinder() {
 
       <section className="panel" aria-labelledby="awT">
         <h2 id="awT">{cabin === "eco" ? "Economy" : "Business"}, cheapest first</h2>
-        {rows.length === 0 ? (
-          <p className="small muted">None of the charts we have covers this route yet.</p>
+        {own.length === 0 ? (
+          <p className="small muted">None of the airlines we have charts for flies this route themselves.{partners.length ? " Partner airline prices are below." : ""}</p>
         ) : (
-          <div className="tbl-wrap">
-            <table className="cmp-table">
-              <thead>
-                <tr>
-                  <th>Programme and airline</th>
-                  <th className="r">Points</th>
-                  <th>From your cards</th>
-                  <th>Check seats</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((q, i) => (
-                  <tr key={q.p + q.on} className={i === 0 && q[cabin] ? "rec" : undefined}>
-                    <td>
-                      <b>{PARTNERS[q.p].n}</b>
-                      <div className="small muted">On {q.on}</div>
-                      <div className="small muted">{q.basis}</div>
-                      {q.note && <div className="small">{q.note}</div>}
-                      {confPill(q.conf)}
-                    </td>
-                    <td className="r">
-                      <PriceCell price={q[cabin]} />
-                    </td>
-                    <td style={{ minWidth: 180 }}>
-                      <CardCost q={q} cabin={cabin} />
-                    </td>
-                    <td className="small">
-                      {date &&
-                        awardSearchLinks(q.p, from.code, to.code, date).map((l) => (
-                          <div key={l.label}>
-                            <a href={l.href} target="_blank" rel="noopener noreferrer">
-                              {l.label} ↗
-                            </a>
-                          </div>
-                        ))}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <QuoteTable rows={own} cabin={cabin} from={from.code} to={to.code} date={date} />
+        )}
+        {partners.length > 0 && (
+          <details className="aw-partners">
+            <summary>
+              <b>On partner airlines ({partners.length})</b>{" "}
+              <span className="small muted">· only if that partner flies the route</span>
+            </summary>
+            <p className="small muted">
+              These programmes can also book other airlines in their alliance. The price applies only when one of them flies your route, often with a connection that is priced separately.
+            </p>
+            <QuoteTable rows={partners} cabin={cabin} from={from.code} to={to.code} date={date} />
+          </details>
         )}
         {missing.length > 0 && (
           <ul className="g-notes small">
@@ -194,7 +219,7 @@ export function AwardFinder() {
           </ul>
         )}
         <p className="small muted" style={{ margin: 0 }}>
-          Coming next: {AWARD_COMING}. Prices are the lowest a programme charges; &quot;up to&quot; is its peak or Prime price.
+          Prices are the lowest a programme charges; &quot;up to&quot; is its peak, Prime or standard-seat price.
         </p>
       </section>
 
@@ -225,7 +250,7 @@ export function AwardFinder() {
 
       <section className="panel" aria-labelledby="awC">
         <h2 id="awC">About these charts</h2>
-        {CHART_INFO.map((c) => (
+        {ALL_CHART_INFO.map((c) => (
           <details key={c.p}>
             <summary>
               <b>{PARTNERS[c.p].n}</b> <span className="small muted">· {c.flights}</span>

@@ -8,7 +8,7 @@ import { longDate } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Points needed for any flight",
-  description: "Pick any two airports and see how many Air India, Aeroplan, KrisFlyer and Avios points a one-way flight costs, from each programme's published chart, and which Indian card gets you there.",
+  description: "Pick any two airports and see how many points a one-way flight costs on Air India, Aeroplan, KrisFlyer, Avios, Qatar, Turkish, JAL, Flying Blue, United and more, and which Indian card gets you there.",
 };
 
 export default function AwardsPage() {
