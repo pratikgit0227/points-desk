@@ -514,3 +514,5 @@ a.trip{display:flex}
 .aw-suggest button:hover{background:var(--accent-soft)}
 .aw-seen{margin:0;padding-left:18px;display:grid;gap:8px}
 .ok-text{color:var(--accent);font-weight:600}
+.aw-partners{margin-top:4px}
+.aw-partners summary{cursor:pointer;padding:6px 0}
