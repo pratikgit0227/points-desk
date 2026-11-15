@@ -51,7 +51,7 @@ export const AMERICAS_OCEANIA: Destination[] = [
     nonstop: [{ airline: "Air India", merchant: "airindia", from: "Delhi (10 a week); Mumbai 3 a week until 26 Mar 2027" }],
     options: [
       { p: "aeroplan", airline: "Air India", route: "Delhi / Mumbai → Toronto, nonstop", eco: 60000, biz: 90000, pricing: "fixed", confidence: "high", note: AEROPLAN_LONG },
-      { p: "airindia", airline: "Air India", route: "Delhi → Toronto, nonstop", eco: 40000, biz: 130000, pricing: "fixed", confidence: "medium", note: "Business dropped from 165,000. Economy estimated from the USA price. " + AI_LONG },
+      { p: "airindia", airline: "Air India", route: "Delhi → Toronto, nonstop", eco: 50000, biz: 130000, pricing: "fixed", confidence: "high", note: "Business dropped from 165,000. Canada economy is 50,000, higher than the USA. " + AI_LONG },
       { p: "united", airline: "Air India", route: "Delhi → Toronto, nonstop", eco: 49500, biz: 88000, pricing: "dynamic", confidence: "high", note: UNITED },
       { p: "flyingblue", airline: "Air France / KLM", route: "Delhi → Toronto via Paris / Amsterdam", eco: 36700, biz: 103000, pricing: "dynamic", confidence: "high", note: FB_LONG },
       { p: "qatar", airline: "Qatar Airways", route: "Delhi → Doha → Toronto", eco: 40000, biz: 80000, pricing: "fixed", confidence: "medium", note: QATAR_LONG },

@@ -19,8 +19,8 @@ export const GUIDES: Partial<Record<PartnerId, Guide>> = {
     spots:[
       {to:"Singapore", from:"Delhi / Mumbai", cab:"Business", m:45000, note:"Saver award"},
       {to:"Singapore", from:"Mumbai / Delhi", cab:"Suites (First)", m:61500, note:"A380 Suites, Saver award"},
-      {to:"Tokyo or Seoul", from:"India via Singapore", cab:"Business", m:95000, note:"About; priced as one award, not two"},
-      {to:"Sydney or Melbourne", from:"India via Singapore", cab:"Business", m:108500, note:"About"},
+      {to:"Tokyo or Seoul", from:"India via Singapore", cab:"Business", m:88000, note:"Saver; priced as one award, not two"},
+      {to:"Sydney or Melbourne", from:"India via Singapore", cab:"Business", m:100000, note:"Saver; priced as one award"},
       {to:"USA / Canada", from:"India", cab:"Business", m:105000, note:"About; on Star Alliance partners"}],
     steps:["Create a KrisFlyer account on singaporeair.com.","Find a Saver seat on singaporeair.com first.","Transfer points (HDFC Infinia 1:1, Atlas 1:2). Book as soon as the miles arrive.","Saver awards must be ticketed when you book; there are no holds."],
     watch:["KrisFlyer miles expire 3 years after they're added.","Saver seats on popular dates go early; Advantage awards cost more but are easier to find."],
@@ -71,8 +71,8 @@ export const GUIDES: Partial<Record<PartnerId, Guide>> = {
     src:"AwardTravelFinder; Upgraded Points"},
   ba:{about:"British Airways Club, using Avios. BA flies from Delhi, Mumbai, Bengaluru, Hyderabad and Chennai to London.",
     spots:[
-      {to:"London", from:"Delhi", cab:"Economy", m:30000, note:"Off-peak; 35,000 on peak dates"},
-      {to:"London", from:"Delhi", cab:"Premium Economy", m:47500, note:"Off-peak; 67,500 on peak dates"}],
+      {to:"London", from:"Delhi", cab:"Economy", m:33000, note:"Off-peak; 38,500 on peak dates"},
+      {to:"London", from:"Delhi", cab:"Premium Economy", m:52250, note:"Off-peak; 74,250 on peak dates"}],
     steps:["Create a BA Club account on britishairways.com.","Search 'Book with Avios'.","You can also use Avios on Qatar via a Qatar account (Avios move between the two)."],
     watch:["BA often keeps India award seats blocked until about 45 days before departure. Plan for that.","BA charges high surcharges on its own flights.","Most Indian cards now give only 1 Avios per 2 points."],
     src:"AwardTravelFinder"},
